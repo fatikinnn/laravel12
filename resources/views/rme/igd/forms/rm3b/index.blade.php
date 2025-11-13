@@ -168,47 +168,65 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Riwayat Penyakit Dahulu:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RPD_TIDAK" name="RPD_TIDAK" @if(isChecked($rm3b, 'RPD_TIDAK')) checked @endif data-group="riwayat-penyakit-dahulu"><label class="form-check-label" for="RPD_TIDAK">Tidak Ada</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RPD_ADA" name="RPD_ADA" @if(isChecked($rm3b, 'RPD_ADA')) checked @endif data-group="riwayat-penyakit-dahulu"><label class="form-check-label" for="RPD_ADA">Ada</label></div>
-                                <div class="mt-2" id="rpd_ada_ket_container" 
-                                    style="display: {{ isChecked($rm3b, 'RPD_ADA') ? 'block' : 'none' }};">
-                                <label for="RPD_ADA_KET" class="form-label">Keterangan:</label>
-                                <textarea class="form-control" id="RPD_ADA_KET" name="RPD_ADA_KET" rows="3">{{ getValue($rm3b, 'RPD_ADA_KET') }}</textarea>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Riwayat Penyakit Keluarga:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="RPK_TIDAK" name="RPK_TIDAK" @if(isChecked($rm3b, 'RPK_TIDAK')) checked @endif><label class="form-check-label" for="RPK_TIDAK">Tidak Ada</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="RPK_ADA" name="RPK_ADA" @if(isChecked($rm3b, 'RPK_ADA')) checked @endif><label class="form-check-label" for="RPK_ADA">Ada</label></div>
-                                <div class="mt-2" id="rpk_ada_ket_container" 
-                                    style="display: {{ isChecked($rm3b, 'RPK_ADA') ? 'block' : 'none' }};">
-                                <label for="RPK_ADA_KET" class="form-label">Keterangan:</label>
-                                <textarea class="form-control" id="RPK_ADA_KET" name="RPK_ADA_KET" rows="3">{{ getValue($rm3b, 'RPK_ADA_KET') }}</textarea>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Riwayat Alergi:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RA_TIDAK" name="RA_TIDAK" @if(isChecked($rm3b, 'RA_TIDAK')) checked @endif data-group="riwayat-alergi"><label class="form-check-label" for="RA_TIDAK">Tidak Ada</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RA_ADA" name="RA_ADA" @if(isChecked($rm3b, 'RA_ADA')) checked @endif data-group="riwayat-alergi"><label class="form-check-label" for="RA_ADA">Ada</label></div>
-                                <div class="mt-2" id="RA_ADA_KET_CONTAINER" 
-                                    style="display: {{ isChecked($rm3b, 'RA_ADA') ? 'block' : 'none' }};">
-                                <label for="RA_ADA_KET" class="form-label">Keterangan:</label>
-                                <textarea class="form-control" id="RA_ADA_KET" name="RA_ADA_KET" rows="3">{{ getValue($rm3b, 'RA_ADA_KET') }}</textarea>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Penilaian Tingkat Nyeri</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="NYERI_TIDAK" name="NYERI_TIDAK" @if(isChecked($rm3b, 'NYERI_TIDAK')) checked @endif data-group="nyeri"><label class="form-check-label" for="NYERI_TIDAK">Tidak Ada</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="NYERI_YA3B" name="NYERI_YA3B" @if(isChecked($rm3b, 'NYERI_YA3B')) checked @endif data-group="nyeri"><label class="form-check-label" for="NYERI_YA3B">Ya</label></div>
-                                <div id="skoringNyeriForm" style="display: {{ isChecked($rm3b, 'NYERI_YA3B') ? 'block' : 'none' }};">
-                                    <div class="mt-2"><label class="form-label fw-bold">Skoring Nyeri:</label>
-                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="VAS" name="VAS" @if(isChecked($rm3b, 'VAS')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="VAS">VAS</label></div>
-                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="WONG" name="WONG" @if(isChecked($rm3b, 'WONG')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="WONG">Wong-Baker</label></div>
-                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="FLACC" name="FLACC" @if(isChecked($rm3b, 'FLACC')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="FLACC">FLACC</label></div>
-                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="NIPS" name="NIPS" @if(isChecked($rm3b, 'NIPS')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="NIPS">NIPS</label></div>
+                                <div class="row align-items-center mb-1">
+                                    <div class="col-md-5"><label class="form-label fw-bold mb-0">Riwayat Penyakit Dahulu:</label></div>
+                                    <div class="col-md-7">
+                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RPD_TIDAK" name="RPD_TIDAK" @if(isChecked($rm3b, 'RPD_TIDAK')) checked @endif data-group="riwayat-penyakit-dahulu"><label class="form-check-label" for="RPD_TIDAK">Tidak Ada</label></div>
+                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RPD_ADA" name="RPD_ADA" @if(isChecked($rm3b, 'RPD_ADA')) checked @endif data-group="riwayat-penyakit-dahulu"><label class="form-check-label" for="RPD_ADA">Ada</label></div>
                                     </div>
-                                    <div class="mt-2 mb-3 d-flex align-items-center"><label for="NYERI_YA_KET" class="form-label me-2 mb-0">Skala Nyeri:</label><div class="input-group" style="width: 150px;"><input type="number" class="form-control text-center" id="NYERI_YA_KET" name="NYERI_YA_KET" min="1" max="10" value="{{ getValue($rm3b, 'NYERI_YA_KET') }}"><span class="input-group-text">1-10</span></div></div>
+                                </div>
+                                <div id="rpd_ada_ket_container" style="display: {{ isChecked($rm3b, 'RPD_ADA') ? 'block' : 'none' }};">
+                                    <textarea class="form-control" id="RPD_ADA_KET" name="RPD_ADA_KET" rows="2" placeholder="Keterangan penyakit dahulu...">{{ getValue($rm3b, 'RPD_ADA_KET') }}</textarea>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="row align-items-center mb-1">
+                                    <div class="col-md-5"><label class="form-label fw-bold mb-0">Riwayat Penyakit Keluarga:</label></div>
+                                    <div class="col-md-7">
+                                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="RPK_TIDAK" name="RPK_TIDAK" @if(isChecked($rm3b, 'RPK_TIDAK')) checked @endif><label class="form-check-label" for="RPK_TIDAK">Tidak Ada</label></div>
+                                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="RPK_ADA" name="RPK_ADA" @if(isChecked($rm3b, 'RPK_ADA')) checked @endif><label class="form-check-label" for="RPK_ADA">Ada</label></div>
+                                    </div>
+                                </div>
+                                <div id="rpk_ada_ket_container" style="display: {{ isChecked($rm3b, 'RPK_ADA') ? 'block' : 'none' }};">
+                                    <textarea class="form-control" id="RPK_ADA_KET" name="RPK_ADA_KET" rows="2" placeholder="Keterangan penyakit keluarga...">{{ getValue($rm3b, 'RPK_ADA_KET') }}</textarea>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="row align-items-center mb-1">
+                                    <div class="col-md-5"><label class="form-label fw-bold mb-0">Riwayat Alergi:</label></div>
+                                    <div class="col-md-7">
+                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RA_TIDAK" name="RA_TIDAK" @if(isChecked($rm3b, 'RA_TIDAK')) checked @endif data-group="riwayat-alergi"><label class="form-check-label" for="RA_TIDAK">Tidak Ada</label></div>
+                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="RA_ADA" name="RA_ADA" @if(isChecked($rm3b, 'RA_ADA')) checked @endif data-group="riwayat-alergi"><label class="form-check-label" for="RA_ADA">Ada</label></div>
+                                    </div>
+                                </div>
+                                <div id="RA_ADA_KET_CONTAINER" style="display: {{ isChecked($rm3b, 'RA_ADA') ? 'block' : 'none' }};">
+                                    <textarea class="form-control" id="RA_ADA_KET" name="RA_ADA_KET" rows="2" placeholder="Keterangan alergi...">{{ getValue($rm3b, 'RA_ADA_KET') }}</textarea>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="row align-items-center mb-1">
+                                    <div class="col-md-5"><label class="form-label fw-bold mb-0">Penilaian Tingkat Nyeri:</label></div>
+                                    <div class="col-md-7">
+                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="NYERI_TIDAK" name="NYERI_TIDAK" @if(isChecked($rm3b, 'NYERI_TIDAK')) checked @endif data-group="nyeri"><label class="form-check-label" for="NYERI_TIDAK">Tidak Ada</label></div>
+                                        <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="NYERI_YA3B" name="NYERI_YA3B" @if(isChecked($rm3b, 'NYERI_YA3B')) checked @endif data-group="nyeri"><label class="form-check-label" for="NYERI_YA3B">Ya</label></div>
+                                    </div>
+                                </div>
+                                <div id="skoringNyeriForm" style="display: {{ isChecked($rm3b, 'NYERI_YA3B') ? 'block' : 'none' }};">
+                                    <div class="row align-items-center mt-2">
+                                        <div class="col-md-5"><label class="form-label fw-bold mb-0">Metode Skoring:</label></div>
+                                        <div class="col-md-7">
+                                            <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="VAS" name="VAS" @if(isChecked($rm3b, 'VAS')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="VAS">VAS</label></div>
+                                            <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="WONG" name="WONG" @if(isChecked($rm3b, 'WONG')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="WONG">Wong</label></div>
+                                            <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="FLACC" name="FLACC" @if(isChecked($rm3b, 'FLACC')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="FLACC">FLACC</label></div>
+                                            <div class="form-check form-check-inline"><input class="form-check-input exclusive-check" type="checkbox" id="NIPS" name="NIPS" @if(isChecked($rm3b, 'NIPS')) checked @endif data-group="metode-nyeri"><label class="form-check-label" for="NIPS">NIPS</label></div>
+                                        </div>
+                                    </div>
+                                    <div class="row align-items-center mt-2">
+                                        <div class="col-md-5"><label for="NYERI_YA_KET" class="form-label fw-bold mb-0">Skala Nyeri:</label></div>
+                                        <div class="col-md-7">
+                                            <div class="input-group"><input type="number" class="form-control text-center" id="NYERI_YA_KET" name="NYERI_YA_KET" min="1" max="10" value="{{ getValue($rm3b, 'NYERI_YA_KET') }}"><span class="input-group-text">1-10</span></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

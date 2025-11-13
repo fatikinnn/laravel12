@@ -4,7 +4,7 @@
     <input type="hidden" id="rm7-norm" value="{{ $norm }}">
     <input type="hidden" id="rm7-user" value="{{ trim($user['username']) }}">
     <input type="hidden" id="rm7-dpjp" value="{{ $patientDetails['DPJP'] ?? '' }}">
-    <input type="hidden" id="rm7-diagnosa" value="{{ $patientDetails['DIAGNOSIS_UTAMA'] ?? '' }}">
+    <input type="hidden" id="rm7-diagnosa" value="{{ trim($patientDetails['DIAGNOSIS_UTAMA'] ?? '') }}">
     <input type="hidden" id="rm7-url-history" value="{{ route('rme.igd.form.rm7.history') }}">
     <input type="hidden" id="rm7-url-detail" value="{{ route('rme.igd.form.rm7.detail') }}">
     <input type="hidden" id="rm7-url-store" value="{{ route('rme.igd.form.rm7.store') }}">

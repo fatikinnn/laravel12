@@ -19,6 +19,13 @@ class Rm7Controller extends Controller
         $user = Session::get('user');
         $patientDetails = $request->all();
 
+        // Ambil diagnosis utama dari RM3B
+        $rm3b = DB::connection('sqlsrv')
+            ->table('RM3B')
+            ->where('NOPENDAFTARAN', $noPendaftaran)
+            ->first(['DIAGNOSIS_UTAMA']);
+        $patientDetails['DIAGNOSIS_UTAMA'] = $rm3b->DIAGNOSIS_UTAMA ?? '';
+
         // Ambil daftar dokter untuk dropdown DPJP
         $dokterList = DB::connection('sqlsrv')
             ->table('pemeriksa')
