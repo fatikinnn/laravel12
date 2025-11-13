@@ -155,8 +155,90 @@ class Rm3bController extends Controller
                 }
             });
 
+            // --- Persiapan Data untuk WhatsApp ---
+            $rmeIgdController = new RmeIgdController();
+            $patientDetails = $rmeIgdController->getPatientDetailsData($noPendaftaran);
+
+            $namaPasien = $patientDetails['Nama Pasien'] ?? '';
+            $usiaPasien = $patientDetails['Usia'] ?? '';
+            $jaminan = $patientDetails['Asuransi'] ?? '';
+            $bb = $data['BB'] ?? '';
+            $riwayatPenyakitSekarang = $data['RIW_PENYAKIT'] ?? '';
+            $riwayatPenyakitDahulu = $request->has('RPD_ADA') ? ($data['RPD_ADA_KET'] ?? 'Ada') : '';
+            $riwayatPenyakitKeluarga = $request->has('RPK_ADA') ? ($data['RPK_ADA_KET'] ?? 'Ada') : '';
+            $riwayatAlergi = $request->has('RA_ADA') ? ($data['RA_ADA_KET'] ?? 'Ada') : '';
+            $skalaNyeri = $request->has('NYERI_YA3B') ? ($data['NYERI_YA_KET'] ?? 'Ya') : '';
+            $td = $data['TEDAR'] ? $data['TEDAR'] . ' mmHg' : '-';
+            $nadi = $data['NADI'] ? $data['NADI'] . ' x/menit' : '-';
+            $suhu = $data['SUHU'] ? $data['SUHU'] . ' °C' : '-';
+            $spo2 = $data['SO2'] ? $data['SO2'] . ' %' : '-';
+            $rr = $data['PERNAPASAN'] ? $data['PERNAPASAN'] . ' x/menit' : '-';
+            $kepala = $data['KEPALA'] ?? '';
+            $leher = $data['LEHER'] ?? '';
+            $jantung = $data['JANTUNG'] ?? '';
+            $paru = $data['PARU'] ?? '';
+            $abdomen = $data['ABDOMEN'] ?? '';
+            $anogenital = $data['ANOGENITAL'] ?? '';
+            
+            // Menggabungkan ekstremitas atas dan bawah
+            $ekstremitasAtas = $request->input('EKSREATAS', 'Akral hangat +/+ Oedema -/-');
+            $ekstremitasBawah = $request->input('EKSTREBAWAH', 'Akral hangat +/+ Oedema -/-');
+            $ekstremitas = "Atas: {$ekstremitasAtas} / Bawah: {$ekstremitasBawah}";
+
+            $diagUtama = $data['DIAGNOSIS_UTAMA'] ?: '-';
+            $diagSekunder = implode(', ', array_filter([$data['DIAGNO_SEKUND_1'], $data['DIAGNO_SEKUND_2'], $data['DIAGNO_SEKUND_3'], $data['DIAGNO_SEKUND_4']]));
+            $terapi = $data['TERAPI_SMNTR'] ?: '-';
+
+            $waMessage = "*Assalamualaikum dokter,*\nMohon izin lapor pasien di IGD 🙏🏻\n\n";
+            $waMessage .= "*{$namaPasien} / {$usiaPasien} / {$jaminan} / BB: {$bb} Kg*\n\n";
+            $waMessage .= "*S/*\n" . ($riwayatPenyakitSekarang ?: '-') . "\n";
+            if ($riwayatPenyakitDahulu) $waMessage .= "Riw. Penyakit Dahulu: {$riwayatPenyakitDahulu}\n";
+            if ($riwayatPenyakitKeluarga) $waMessage .= "Riw. Penyakit Keluarga: {$riwayatPenyakitKeluarga}\n";
+            if ($riwayatAlergi) $waMessage .= "Riw. Alergi: {$riwayatAlergi}\n";
+            if ($skalaNyeri) $waMessage .= "Skala Nyeri: {$skalaNyeri}\n";
+            $waMessage .= "\n*O/*\n";
+            $waMessage .= "TD: {$td}\nN: {$nadi}\nS: {$suhu}\nSpO2: {$spo2}\nRR: {$rr}\n\n";
+            $waMessage .= "Kepala: {$kepala}\nLeher: {$leher}\n";
+            $waMessage .= "*Thorax*\nJantung: {$jantung}\nParu: {$paru}\n";
+            $waMessage .= "Abdomen: {$abdomen}\nAnogenital: {$anogenital}\nEkstremitas: {$ekstremitas}\n\n";
+            $waMessage .= "*A/*\n{$diagUtama}" . ($diagSekunder ? "\n{$diagSekunder}" : "") . "\n\n";
+            $waMessage .= "*P/*\n{$terapi}\n\n";
+            $waMessage .= "Mohon tatalaksana pada pasien, terimakasih 🙏🏻";
+
+            $waDoctors = [
+                ['name' => 'dr. Angga Sp,An', 'phone' => '628113223656'],
+                ['name' => 'dr. Vina Sp.A', 'phone' => '628122188912'],
+                ['name' => 'dr. Arie Falah Sp.A', 'phone' => '6282175373641'],
+                ['name' => 'dr. Aji Sp.PD', 'phone' => '628562940536'],
+                ['name' => 'dr. Alin Sp.PD', 'phone' => '6282121366555'],
+                ['name' => 'dr. Anggi Sp.B', 'phone' => '6281390575432'],
+                ['name' => 'dr. Ariawan Sp.OG', 'phone' => '6282137584008'],
+                ['name' => 'dr. Bayu Sp.OG', 'phone' => '6281357617900'],
+                ['name' => 'dr. Bayu Sp.B', 'phone' => '6282280806827'],
+                ['name' => 'dr. Ceza Sp.OG', 'phone' => '6287835003800'],
+                ['name' => 'dr. Dimas Sp.KFR', 'phone' => '6285786701427'],
+                ['name' => 'dr. Evan SpB', 'phone' => '6282116222252'],
+                ['name' => 'dr. Fata Sp.N', 'phone' => '6281332851313'],
+                ['name' => 'dr. Heri Sp.PK', 'phone' => '628128998246'],
+                ['name' => 'dr. Ifan Sp.An', 'phone' => '628886497801'],
+                ['name' => 'dr. Lukman Sp.KJ', 'phone' => '6281228593109'],
+                ['name' => 'dr. Monika Sp.JP', 'phone' => '6281284150256'],
+                ['name' => 'dr. Naufal Sp.OT', 'phone' => '6281806357676'],
+                ['name' => 'dr. Novi Sp.M', 'phone' => '6281325428656'],
+                ['name' => 'dr. Umar Sp.P', 'phone' => '6285642000371'],
+                ['name' => 'Testing', 'phone' => '6285883381332'],
+            ];
+
             $message = $action === 'update' ? 'Data berhasil diperbarui.' : 'Data berhasil disimpan.';
-            return response()->json(['status' => 'success', 'message' => $message, 'action' => $action]);
+            return response()->json([
+                'status' => 'success',
+                'message' => $message,
+                'action' => $action,
+                'wa_data' => [
+                    'message' => $waMessage,
+                    'doctors' => $waDoctors,
+                ]
+            ]);
 
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
@@ -221,8 +303,8 @@ class Rm3bController extends Controller
         $rmigd['MET_NIPS'] = $request->has('NIPS') ? 1 : 0;
 
         // Pemeriksaan Fisik
-        $rmigd['MATA'] = $request->input('KEPALA');
-        $rmigd['THT'] = $request->input('KEPALA'); // Asumsi sama dengan kepala
+        $rmigd['KEPALA'] = $request->input('KEPALA');
+        // $rmigd['THT'] = $request->input('KEPALA'); // Asumsi sama dengan kepala
         $rmigd['JANTUNG'] = $request->input('JANTUNG');
         $rmigd['PARU'] = $data['PARU'];
         $rmigd['THORAK'] = $data['PARU']; // Thorax disamakan dengan Paru

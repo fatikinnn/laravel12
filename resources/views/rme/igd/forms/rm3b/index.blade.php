@@ -509,11 +509,51 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.status === 'success') {
-                    Swal.fire('Berhasil!', response.message, 'success');
-                    // Setelah berhasil menyimpan atau memperbarui, picu event 'change'
-                    // pada dropdown di halaman utama. Ini akan memuat ulang form ini
-                    // secara dinamis dengan data terbaru dari server.
-                    $('#form-selector').trigger('change');
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message, showConfirmButton: false, timer: 1500 })
+                        .then(() => {
+                        // Cek apakah ada data untuk WhatsApp
+                        if (response.wa_data && response.wa_data.doctors) {
+                            let doctorsOptions = '<option value="">-- Pilih Dokter --</option>';
+                            response.wa_data.doctors.forEach(doctor => {
+                                doctorsOptions += `<option value="${doctor.phone}">${doctor.name}</option>`;
+                            });
+                            
+                            Swal.fire({
+                                title: 'Kirim Laporan via WhatsApp?',
+                                html: `<p>Pilih dokter yang akan dikirimi laporan:</p>
+                                       <select id="swal-doctor-select" class="form-control">${doctorsOptions}</select>`,
+                                icon: 'question',
+                                showCancelButton: true,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Kirim WA',
+                                cancelButtonText: 'Lewati',
+                                allowOutsideClick: false, // Mencegah dialog tertutup saat klik di luar
+                                preConfirm: () => {
+                                    const selectedPhone = $('#swal-doctor-select').val();
+                                    if (!selectedPhone) {
+                                        Swal.showValidationMessage('Anda harus memilih dokter terlebih dahulu.');
+                                        return false;
+                                    }
+                                    // Kirim WA tapi jangan tutup dialog
+                                    const waMessageEncoded = encodeURIComponent(response.wa_data.message);
+                                    const waUrl = `https://web.whatsapp.com/send?phone=${selectedPhone}&text=${waMessageEncoded}`;
+                                    window.open(waUrl, '_blank');
+                                    
+                                    // Kembalikan false agar dialog tidak tertutup
+                                    return false; 
+                                }
+                            }).then((result) => {
+                                // Dialog ini hanya akan masuk ke sini jika tombol "Lewati" (cancel) ditekan
+                                if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                                    // Muat ulang form setelah dialog WA selesai (dilewati)
+                                    $('#form-selector').trigger('change');
+                                }
+                            });
+                        } else {
+                            // Jika tidak ada data WA, langsung muat ulang form
+                            $('#form-selector').trigger('change');
+                        }
+                    });
                 } else {
                     Swal.fire('Gagal!', response.message || 'Terjadi kesalahan saat menyimpan.', 'error');
                 }
