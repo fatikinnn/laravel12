@@ -152,19 +152,61 @@ class Rm7Controller extends Controller
                         $data['TGLJAM_TERIMA'] = Carbon::now();
                     }
 
-                    // --- LOGIKA UPDATE RANAP (Dijalankan setiap kali ada update oleh user berwenang) ---
+                    // --- LOGIKA UPDATE RANAP (SESUAI NATIVE CODE) ---
                     $namaRuangTujuan = $request->input('PINDAH_KE_RUANG_TEXT');
                     if ($namaRuangTujuan) {
-                        $ruangInfo = DB::connection('sqlsrv')
+                        $ruangTujuanInfo = DB::connection('sqlsrv')
                             ->table('RUANGINAP as R')
                             ->join('KELASINAP as K', 'R.NoKelas', '=', 'K.NoKelas')
                             ->where('R.NAMARUANG', $namaRuangTujuan)
                             ->first(['R.NORUANG', 'K.KODEKELAS']);
-                        
-                        if ($ruangInfo) {
-                            DB::connection('sqlsrv')->table('RANAP')
+
+                        if ($ruangTujuanInfo) {
+                            $newNobangsal = $ruangTujuanInfo->NORUANG;
+                            $newKodekelas = $ruangTujuanInfo->KODEKELAS;
+
+                            $ranapLama = DB::connection('sqlsrv')->table('RANAP')
                                 ->where('NOPENDAFTARAN', $noPendaftaran)
-                                ->update(['NOBANGSAL' => $ruangInfo->NORUANG, 'KELAS' => $ruangInfo->KODEKELAS]);
+                                ->orderBy('MUTASI', 'desc')
+                                ->first();
+
+                            if ($ranapLama) {
+                                $kelasLama = trim($ranapLama->KELAS);
+                                $mutasiLama = $ranapLama->MUTASI;
+
+                                if ($kelasLama == $newKodekelas) {
+                                    // SKENARIO 1: KELAS SAMA, HANYA PINDAH RUANGAN
+                                    DB::connection('sqlsrv')->table('RANAP')
+                                        ->where('NOPENDAFTARAN', $noPendaftaran)
+                                        ->where('MUTASI', $mutasiLama)
+                                        ->update(['NOBANGSAL' => $newNobangsal, 'KELAS' => $newKodekelas]);
+                                } else {
+                                    // SKENARIO 2: KELAS BERBEDA, BUAT MUTASI BARU
+                                    $now = Carbon::now();
+
+                                    // a. Tutup mutasi lama
+                                    DB::connection('sqlsrv')->table('RANAP')
+                                        ->where('NOPENDAFTARAN', $noPendaftaran)
+                                        ->where('MUTASI', $mutasiLama)
+                                        ->update(['TANGGALKELUAR' => $now->format('Y-m-d'), 'JAMKELUAR' => $now, 'CEKOUT' => 'Y']);
+
+                                    // b. Insert mutasi baru
+                                    DB::connection('sqlsrv')->table('RANAP')->insert([
+                                        'NOPENDAFTARAN' => $noPendaftaran,
+                                        'TANGGALMASUK' => $now->format('Y-m-d'),
+                                        'JAMMASUK' => $now,
+                                        'MUTASI' => $mutasiLama + 1,
+                                        'CEKOUT' => 'N',
+                                        'NOBANGSAL' => $newNobangsal,
+                                        'KELAS' => $newKodekelas,
+                                        'NOPEMERIKSA' => $ranapLama->NOPEMERIKSA,
+                                        'NOSPRI' => $ranapLama->NOSPRI,
+                                        'KDTARIF' => $ranapLama->KDTARIF,
+                                        'NAMAUSER' => substr($user, 0, 25),
+                                        'KDJABATAN' => $ranapLama->KDJABATAN,
+                                    ]);
+                                }
+                            }
                         }
                     }
                 } else {
@@ -172,6 +214,21 @@ class Rm7Controller extends Controller
                     DB::connection('sqlsrv')->rollBack();
                     return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk mengedit data transfer ini.'], 403);
                 }
+
+                // --- LOGIKA UPDATE RMIGD SETELAH RM7 DI-UPDATE ---
+                // Jika ini adalah transfer pertama (dari IGD) dan sudah ada perawat yang menerima,
+                // update TANGGALKELUAR dan JAMKELUAR di RMIGD.
+                $perawatMenerimaFinal = $data['PERAWAT_MENERIMA'] ?? $existing->PERAWAT_MENERIMA;
+                $tanggalDiterima = $request->input('TANGGAL_DITERIMA');
+                $jamDiterima = $request->input('JAM_DITERIMA');
+
+                if ($noTransfer == 1 && !empty(trim($perawatMenerimaFinal)) && !empty($tanggalDiterima) && !empty($jamDiterima)) {
+                    $jamKeluar = $jamDiterima . ':' . Carbon::now()->format('s');
+                    DB::connection('sqlsrv')->table('RMIGD')
+                        ->where('NOPENDAFTARAN', $noPendaftaran)
+                        ->update(['TANGGALKELUAR' => $tanggalDiterima, 'JAMKELUAR' => $jamKeluar]);
+                }
+                // --- END LOGIKA UPDATE RMIGD ---
 
                 DB::connection('sqlsrv')->table('rm7')->where('NOPENDAFTARAN', $noPendaftaran)->where('NOTRANSFER', $noTransfer)->update($data);
                 $tglJamEntry = $existing->TGLJAM_ENTRY;
