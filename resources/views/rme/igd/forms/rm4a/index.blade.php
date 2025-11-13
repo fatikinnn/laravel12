@@ -127,13 +127,13 @@
                             <div class="card card-outline card-success intervention-card risk-low rr-card" style="display: none;">
                                 <div class="card-header"><h3 class="card-title">Intervensi Resiko Rendah (Skor 0-24)</h3></div>
                                 <div class="card-body">
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RR_ORIENTASI" value="1" id="rr_orientasi"><label class="form-check-label ml-2" for="rr_orientasi">Orientasi lingkungan</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RR_PASTIKAN_BEL" value="1" id="rr_pastikan_bel"><label class="form-check-label ml-2" for="rr_pastikan_bel">Pastikan bel mudah dijangkau</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RR_RODA_TT" value="1" id="rr_roda_tt"><label class="form-check-label ml-2" for="rr_roda_tt">Roda tempat tidur berada pada posisi terkunci</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RR_POSISIKAN_TT" value="1" id="rr_posisikan_tt"><label class="form-check-label ml-2" for="rr_posisikan_tt">Posisikan tempat tidur pada posisi rendah</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RR_NAIKKAN_PAGAR" value="1" id="rr_naikkan_pagar"><label class="form-check-label ml-2" for="rr_naikkan_pagar">Naikkan pagar pengaman tempat tidur</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RR_LAMPU_TIDUR" value="1" id="rr_lampu_tidur"><label class="form-check-label ml-2" for="rr_lampu_tidur">Pastikan lampu tidur hidup saat malam hari</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RR_EDUKASI" value="1" id="rr_edukasi"><label class="form-check-label ml-2" for="rr_edukasi">Berikan edukasi pasien atau keluarga</label></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RR_ORIENTASI" value="1" id="rr_orientasi"><label class="font-weight-normal" for="rr_orientasi">Orientasi lingkungan</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RR_PASTIKAN_BEL" value="1" id="rr_pastikan_bel"><label class="font-weight-normal" for="rr_pastikan_bel">Pastikan bel mudah dijangkau</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RR_RODA_TT" value="1" id="rr_roda_tt"><label class="font-weight-normal" for="rr_roda_tt">Roda tempat tidur berada pada posisi terkunci</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RR_POSISIKAN_TT" value="1" id="rr_posisikan_tt"><label class="font-weight-normal" for="rr_posisikan_tt">Posisikan tempat tidur pada posisi rendah</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RR_NAIKKAN_PAGAR" value="1" id="rr_naikkan_pagar"><label class="font-weight-normal" for="rr_naikkan_pagar">Naikkan pagar pengaman tempat tidur</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RR_LAMPU_TIDUR" value="1" id="rr_lampu_tidur"><label class="font-weight-normal" for="rr_lampu_tidur">Pastikan lampu tidur hidup saat malam hari</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RR_EDUKASI" value="1" id="rr_edukasi"><label class="font-weight-normal" for="rr_edukasi">Berikan edukasi pasien atau keluarga</label></div></div>
                                 </div>
                             </div>
 
@@ -141,9 +141,9 @@
                             <div class="card card-outline card-warning intervention-card risk-medium rs-card" style="display: none;">
                                 <div class="card-header"><h3 class="card-title">Intervensi Resiko Sedang (Skor 25-50)</h3></div>
                                 <div class="card-body">
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RS_LAKUKAN_SEMUA" value="1" id="rs_lakukan_semua"><label class="form-check-label ml-2" for="rs_lakukan_semua">Lakukan semua pedoman Pencegahan jatuh risiko rendah</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RS_TANDA_SEGITIGA" value="1" id="rs_tanda_segitiga"><label class="form-check-label ml-2" for="rs_tanda_segitiga">Berikan tanda segitiga warna kuning pada bed pasien, pintu atau RM pasien</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RS_TANDA_RESIKO" value="1" id="rs_tanda_resiko"><label class="form-check-label ml-2" for="rs_tanda_resiko">Beri tanda resiko jatuh pada gelang identitas yang menempel pasien</label></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RS_LAKUKAN_SEMUA" value="1" id="rs_lakukan_semua"><label class="font-weight-normal" for="rs_lakukan_semua">Lakukan semua pedoman Pencegahan jatuh risiko rendah</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RS_TANDA_SEGITIGA" value="1" id="rs_tanda_segitiga"><label class="font-weight-normal" for="rs_tanda_segitiga">Berikan tanda segitiga warna kuning pada bed pasien, pintu atau RM pasien</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RS_TANDA_RESIKO" value="1" id="rs_tanda_resiko"><label class="font-weight-normal" for="rs_tanda_resiko">Beri tanda resiko jatuh pada gelang identitas yang menempel pasien</label></div></div>
                                 </div>
                             </div>
 
@@ -151,11 +151,11 @@
                             <div class="card card-outline card-danger intervention-card risk-high rt-card" style="display: none;">
                                 <div class="card-header"><h3 class="card-title">Intervensi Resiko Tinggi (Skor ≥51)</h3></div>
                                 <div class="card-body">
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RT_LAKUKAN_SEMUA" value="1" id="rt_lakukan_semua"><label class="form-check-label ml-2" for="rt_lakukan_semua">Lakukan semua pedoman pencegahan jatuh resiko rendah dan sedang</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RT_1JAM" value="1" id="rt_1jam"><label class="form-check-label ml-2" for="rt_1jam">Kunjungi dan monitor pasien tiap 1 jam</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RT_TEMPATKAN_PASIEN" value="1" id="rt_tempatkan_pasien"><label class="form-check-label ml-2" for="rt_tempatkan_pasien">Tempatkan pasien di kamar yang paling dekat dengan nurse station (bila mungkin)</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RT_ALAT_BANTU" value="1" id="rt_alat_bantu"><label class="form-check-label ml-2" for="rt_alat_bantu">Pastikan pasien menggunakan alat bantu jalan</label></div>
-                                    <div class="form-group icheck-primary"><input type="checkbox" name="RT_LIBATKAN_KELUARGA" value="1" id="rt_libatkan_keluarga"><label class="form-check-label ml-2" for="rt_libatkan_keluarga">Libatkan keluarga untuk mengawasi jalan pasien</label></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RT_LAKUKAN_SEMUA" value="1" id="rt_lakukan_semua"><label class="font-weight-normal" for="rt_lakukan_semua">Lakukan semua pedoman pencegahan jatuh resiko rendah dan sedang</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RT_1JAM" value="1" id="rt_1jam"><label class="font-weight-normal" for="rt_1jam">Kunjungi dan monitor pasien tiap 1 jam</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RT_TEMPATKAN_PASIEN" value="1" id="rt_tempatkan_pasien"><label class="font-weight-normal" for="rt_tempatkan_pasien">Tempatkan pasien di kamar yang paling dekat dengan nurse station (bila mungkin)</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RT_ALAT_BANTU" value="1" id="rt_alat_bantu"><label class="font-weight-normal" for="rt_alat_bantu">Pastikan pasien menggunakan alat bantu jalan</label></div></div>
+                                    <div class="form-group"><div class="icheck-primary"><input type="checkbox" name="RT_LIBATKAN_KELUARGA" value="1" id="rt_libatkan_keluarga"><label class="font-weight-normal" for="rt_libatkan_keluarga">Libatkan keluarga untuk mengawasi jalan pasien</label></div></div>
                                 </div>
                             </div>
                         </div>

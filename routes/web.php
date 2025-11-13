@@ -74,6 +74,7 @@ Route::middleware(['auth.custom'])->group(function () {
             // Routes untuk Form RM28 (BARU)
             Route::get('/rm28/load', [Rm28Controller::class, 'load'])->name('rm28.load');
             Route::post('/rm28/store', [Rm28Controller::class, 'storeOrUpdate'])->name('rm28.store');
+            Route::get('/rm28/image/{noPendaftaran}/{field}', [Rm28Controller::class, 'showImage'])->name('rm28.showImage')->where('noPendaftaran', '.*');
 
             // Routes untuk Form RM1C (BARU)
             Route::get('/rm1c/load', [Rm1cController::class, 'load'])->name('rm1c.load');
@@ -247,9 +248,6 @@ Route::middleware(['auth.custom'])->group(function () {
             Route::post('/destroy', [App\Http\Controllers\Rm18Controller::class, 'destroy'])->name('destroy');
             Route::get('/signature/{noPendaftaran}/{counter}', [App\Http\Controllers\Rm18Controller::class, 'showSignature'])->name('showSignature')->where('noPendaftaran', '.*');
         });
-
-        // Route untuk menampilkan gambar dari database (misalnya untuk RM28)
-        Route::get('/image/{noPendaftaran}/{field}', [Rm28Controller::class, 'showImage'])->name('image.show');
 
         // Penunjang (Lab & Rad) Routes - Dipindahkan ke sini
         Route::prefix('penunjang')->name('penunjang.')->group(function () {

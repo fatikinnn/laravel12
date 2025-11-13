@@ -210,13 +210,21 @@ class Rm28Controller extends Controller
      * @param int $maxWidth
      * @return \Illuminate\Database\Query\Expression
      */
-    private function resizeAndGetBinary($file, $maxWidth = 150)
+    private function resizeAndGetBinary($file, $width = 100, $height = 100)
     {
         if (!$file) {
             return null;
         }
 
-        $image = imagecreatefromjpeg($file->getRealPath());
+        // Create image from file path based on type
+        $type = $file->getClientMimeType();
+        if ($type == 'image/jpeg' || $type == 'image/jpg') {
+            $image = imagecreatefromjpeg($file->getRealPath());
+        } else {
+            // You can add support for other types like png if needed
+            return null;
+        }
+
         if (!$image) {
             return null;
         }
@@ -224,23 +232,19 @@ class Rm28Controller extends Controller
         $originalWidth = imagesx($image);
         $originalHeight = imagesy($image);
 
-        $ratio = $originalHeight / $originalWidth;
-        $newWidth = $maxWidth;
-        $newHeight = (int)($newWidth * $ratio);
-
-        $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+        $resizedImage = imagecreatetruecolor($width, $height);
 
         // Preserve transparency
         imagealphablending($resizedImage, false);
         imagesavealpha($resizedImage, true);
         $transparent = imagecolorallocatealpha($resizedImage, 255, 255, 255, 127);
-        imagefilledrectangle($resizedImage, 0, 0, $newWidth, $newHeight, $transparent);
+        imagefilledrectangle($resizedImage, 0, 0, $width, $height, $transparent);
 
         imagecopyresampled(
             $resizedImage,
             $image,
             0, 0, 0, 0,
-            $newWidth, $newHeight,
+            $width, $height,
             $originalWidth, $originalHeight
         );
 
@@ -278,27 +282,29 @@ class Rm28Controller extends Controller
             ->where('NOPENDAFTARAN', $noPendaftaran)
             ->value($columnName);
 
-        if (!empty($imageData) && is_string($imageData) && strpos($imageData, '0x') === 0) {
         if (empty($imageData)) {
             return $this->servePlaceholder();
         }
 
-        // Periksa apakah data adalah hex string dari SQL Server
+        // The database driver for SQL Server often returns the 'image' data type
+        // as a hexadecimal string prefixed with '0x'.
+        // If not, it might already be in binary form.
+        $binaryData = $imageData;
         if (is_string($imageData) && strpos($imageData, '0x') === 0) {
-            // Konversi hex string (setelah '0x') menjadi data biner mentah
             $binaryData = hex2bin(substr($imageData, 2));
-            return response($binaryData, 200)->header('Content-Type', 'image/jpeg');
-        } else {
-            // Jika sudah biner, gunakan langsung
-            $binaryData = $imageData;
+        } elseif (is_string($imageData) && ctype_xdigit($imageData)) {
+            // Fallback if the driver returns a hex string without '0x'
+            // This is rare but adds robustness.
+            $binaryData = hex2bin($imageData);
         }
 
-        // Jika tidak ada gambar, sajikan gambar placeholder
-        return $this->servePlaceholder();
-        // Buat response dengan data gambar dan header yang benar
-        $response = Response::make($binaryData, 200);
-        $response->header('Content-Type', 'image/jpeg');
-        return $response;
+        // Create a response with the binary data and set the correct Content-Type header.
+        return response($binaryData, 200, [
+            'Content-Type' => 'image/jpeg',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     /**

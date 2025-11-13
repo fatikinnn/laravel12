@@ -268,6 +268,8 @@
 
 @push('styles')
 <style>
+    /* Lightbox2 Customizations */
+    .lb-data .lb-caption { font-size: 1rem; }
     .custom-form-search {
         position: relative;
     }
@@ -318,6 +320,8 @@
         color: #6c757d;
     }
 </style>
+{{-- Lightbox2 CSS --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
 @endpush
 
 {{-- Seluruh script AJAX dipindahkan ke sini --}}
