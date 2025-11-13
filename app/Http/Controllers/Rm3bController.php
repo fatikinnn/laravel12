@@ -80,7 +80,7 @@ class Rm3bController extends Controller
             'GCS_E', 'GCS_V', 'GCS_M', 'KU_BAIK', 'KU_SEDANG', 'KU_BURUK', 'KESADARAN', 'TEDAR',
             'SUHU', 'BB', 'NADI', 'PERNAPASAN', 'ANAMNESA_AUTO', 'ANAMNESA_ALLO', 'keluhan_utama',
             'RIW_PENYAKIT', 'RPD_TIDAK', 'RPD_ADA', 'RPD_ADA_KET',
-            'RPK_TIDAK', 'RPK_HIPERTENSI', 'RPK_DM', 'RPK_TBC', 'RPK_ADA', 'RPK_ADA_KET',
+            'RPK_TIDAK', 'RPK_HIPERTENSI', 'RPK_DM', 'RPK_TBC', 'RPK_ADA', 'RPK_ADA_KET', 'SO2',
             'RA_TIDAK', 'RA_ADA', 'RA_ADA_KET', 'NYERI_TIDAK', 'NYERI_YA3B', 'NYERI_YA_KET',
             'VAS', 'WONG', 'FLACC', 'NIPS', 'RTL_RAJAL', 'RTL_RANAP', 'RTL_DPJP',
             'RTL_MGL_IDG', 'DIRUJUK_RS', 'DIRUJUK_RS_KET', 'DOKTER_IGD',
@@ -111,11 +111,6 @@ class Rm3bController extends Controller
         for ($i = 1; $i <= 4; $i++) {
             $data['DIAGNO_SEKUND_' . $i] = $diagnoSekund[$i - 1] ?? '';
         }
-
-        // Gabungkan PARU dan EKSTREMITAS seperti di native code
-        $paruKanan = $request->input('PARUKANAN', '');
-        $paruKiri = $request->input('PARUKIRI', '');
-        $data['PARU'] = trim('Kanan: ' . $paruKanan . ' Kiri: ' . $paruKiri);
 
         $ekstremitasAtas = $request->input('EKSREATAS', '');
         $ekstremitasBawah = $request->input('EKSTREBAWAH', '');

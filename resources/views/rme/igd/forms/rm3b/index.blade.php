@@ -29,19 +29,8 @@
         $ku_sedang_checked = true; // Default ke Sedang
     }
 
-    // Logika untuk memisahkan data PARU
-    $paru_kanan = 'SDV +/+ WH -/- RH -/-';
-    $paru_kiri = 'SDV +/+ WH -/- RH -/-';
-    $paru_gabungan = getValue($rm3b, 'PARU', '');
-    if (!empty($paru_gabungan)) {
-        $pos = strpos($paru_gabungan, ' Kiri:');
-        if ($pos !== false) {
-            $paru_kanan = trim(substr($paru_gabungan, 7, $pos - 7));
-            $paru_kiri = trim(substr($paru_gabungan, $pos + 7));
-        } else {
-            $paru_kanan = str_replace('Kanan: ', '', $paru_gabungan);
-        }
-    }
+    // Logika untuk data PARU
+    $paruValue = getValue($rm3b, 'PARU', 'SDV +/+ WH -/- RH -/-');
 
     // Logika untuk memisahkan data EKSTREMITAS
     $ekstremitas_atas = 'Akral hangat +/+ Oedema -/-';
@@ -67,6 +56,7 @@
     $nadiValue = getValue($rm3b, 'NADI', getValue($rm3b, 'PACS1_NADI'));
     $pernapasanValue = getValue($rm3b, 'PERNAPASAN', getValue($rm3b, 'PACS2_NAFAS'));
     $keluhanUtamaValue = getValue($rm3b, 'keluhan_utama', getValue($rm3b, 'KELUHAN'));
+    $so2Value = getValue($rm3b, 'SO2', getValue($rm3b, 'PACS3_SATURASI'));
 
     // Logika untuk RTL_DPJP agar nilai dari DB selalu terpilih jika ada
     $rm3b_dpjp_value = getValue($rm3b, 'RTL_DPJP');
@@ -161,6 +151,7 @@
                             <div class="form-group mb-3"><label for="BB">Berat Badan</label><div class="input-group"><input type="text" class="form-control decimal-input" id="BB" name="BB" placeholder="Berat Badan" value="{{ $bbValue }}"><span class="input-group-text">Kg</span></div></div>
                             <div class="form-group mb-3"><label for="NADI">Nadi</label><div class="input-group"><input type="number" class="form-control" id="NADI" name="NADI" placeholder="Nadi" value="{{ $nadiValue }}"><span class="input-group-text">x/menit</span></div></div>
                             <div class="form-group mb-3"><label for="PERNAPASAN">Pernapasan</label><div class="input-group"><input type="number" class="form-control" id="PERNAPASAN" name="PERNAPASAN" placeholder="Pernapasan" value="{{ $pernapasanValue }}"><span class="input-group-text">x/menit</span></div></div>
+                            <div class="form-group mb-3"><label for="SO2">Saturasi Oksigen (SO2)</label><div class="input-group"><input type="number" class="form-control" id="SO2" name="SO2" placeholder="SO2" value="{{ $so2Value }}"><span class="input-group-text">%</span></div></div>
                         </div>
                     </div>
                 </div>
@@ -236,8 +227,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12"><h5 class="border-bottom pb-2 mb-3">Thorax</h5></div>
                         <div class="col-md-6"><label for="JANTUNG" class="form-label">Jantung</label><textarea class="form-control" id="JANTUNG" name="JANTUNG" rows="2">{{ getValue($rm3b, 'JANTUNG', 'BJ 1 & 2 REGULER') }}</textarea></div>
-                        <div class="col-md-6"><label for="PARUKANAN" class="form-label">Paru Kanan</label><textarea class="form-control" id="PARUKANAN" name="PARUKANAN" rows="2">{{ $paru_kanan }}</textarea></div>
-                        <div class="col-md-6"><label for="PARUKIRI" class="form-label">Paru Kiri</label><textarea class="form-control" id="PARUKIRI" name="PARUKIRI" rows="2">{{ $paru_kiri }}</textarea></div>
+                        <div class="col-md-6"><label for="PARU" class="form-label">Paru</label><textarea class="form-control" id="PARU" name="PARU" rows="2">{{ $paruValue }}</textarea></div>
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-12"><h5 class="border-bottom pb-2 mb-3">Abdomen & Ekstremitas</h5></div>
