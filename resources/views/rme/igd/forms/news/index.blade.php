@@ -410,6 +410,3 @@ $(document).ready(function() {
     loadHistory();
 });
 </script>
-```
-
-Semua langkah yang Anda minta telah selesai. Kini formulir NEWS sudah terintegrasi ke dalam sistem RME Anda, lengkap dengan controller, route, dan view yang fungsional.

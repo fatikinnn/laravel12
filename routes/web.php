@@ -212,6 +212,18 @@ Route::middleware(['auth.custom'])->group(function () {
                 Route::post('/upload', [App\Http\Controllers\UploadPenunjangController::class, 'upload'])->name('upload');
                 Route::post('/destroy', [App\Http\Controllers\UploadPenunjangController::class, 'destroy'])->name('destroy');
             });
+
+            // PSI Routes
+            Route::prefix('psi')->name('psi.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\PsiController::class, 'load'])->name('load');
+                Route::post('/store', [App\Http\Controllers\PsiController::class, 'store'])->name('store');
+            });
+
+            // PKN Routes
+            Route::prefix('pkn')->name('pkn.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\PknController::class, 'load'])->name('load');
+                Route::post('/store', [App\Http\Controllers\PknController::class, 'store'])->name('store');
+            });
         });
 
         // Routes for RM16B - Monitoring Infus

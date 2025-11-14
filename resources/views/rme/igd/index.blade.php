@@ -181,6 +181,12 @@
                                 @if ($isAdmin || $isBidan)
                                     <option value="rm57" data-url="{{ route('rme.igd.form.rm57.load') }}" data-gender="P">RM57 - Surat Keterangan Bersalin</option>
                                 @endif
+                                @if ($isAdmin)
+                                    <option value="psi" data-url="{{ route('rme.igd.form.psi.load') }}">PSI - Pneumonia Severity Index</option>
+                                @endif
+                                @if ($isAdmin || $isBidan)
+                                    <option value="pkn" data-url="{{ route('rme.igd.form.pkn.load') }}" data-kelompok-usia="neonatus">PKN - Perawatan Kesehatan Neonatal</option>
+                                @endif
                             </optgroup>
                             
                             <optgroup label="Penunjang">
