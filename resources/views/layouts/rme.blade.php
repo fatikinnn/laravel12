@@ -287,8 +287,8 @@
                 timer: 10000, // Notifikasi akan tertutup otomatis setelah 10 detik
                 timerProgressBar: true
             }).then(() => {
-                // Submit form logout yang tersembunyi untuk menghancurkan sesi dengan metode POST
-                document.getElementById('logout-form').submit();
+                // Arahkan ke URL logout. Ini lebih bersih daripada submit form.
+                window.location.href = "{{ route('logout') }}";
             });
         }
 
@@ -332,8 +332,8 @@
                 allowOutsideClick: false,
                 allowEscapeKey: false
             }).then(() => {
-                // Submit form logout untuk menghancurkan sesi di server dengan benar.
-                document.getElementById('logout-form').submit();
+                // Arahkan ke URL logout untuk memastikan pembersihan sesi yang benar.
+                window.location.href = "{{ route('logout') }}";
             });
         }
 

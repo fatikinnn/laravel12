@@ -67,10 +67,10 @@ class LoginController extends Controller
                 ->with('swal-success', 'Login Berhasil! Selamat Datang, ' . ($user['namapemeriksa'] ?? $user['username']));
         }
 
-        // Jika gagal, kirim pesan error menggunakan ValidationException
-        throw ValidationException::withMessages([
-            'Username' => ['Username atau Password salah.'],
-        ])->redirectTo(route('login'));
+        // Jika gagal, kembali ke halaman login dengan pesan error dan input sebelumnya.
+        // Ini adalah cara yang lebih standar dan tangguh.
+        return back()->withInput($request->only('Username'))
+                     ->withErrors(['Username' => 'Username atau Password salah.']);
     }
 
     /**
