@@ -86,6 +86,15 @@
             }
         }
 
+        /* --- Mobile Control Panel --- */
+        #mobile-control-panel {
+            display: none; /* Sembunyikan di desktop secara default */
+        }
+        @media (max-width: 991.98px) {
+            .main-sidebar { display: none !important; } /* Sembunyikan sidebar asli di mobile */
+            #mobile-control-panel { display: block; } /* Tampilkan panel kontrol mobile */
+        }
+
         /* --- Center Navbar Brand --- */
         .navbar-brand-center {
             position: absolute;
@@ -107,13 +116,14 @@
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
         <!-- Left navbar links -->
         <ul class="navbar-nav">
-            <li class="nav-item">
-                {{-- Tombol ini sekarang mengontrol sidebar RME --}}
+            {{-- Tombol ini sekarang hanya muncul di layar besar (desktop) untuk mengontrol sidebar RME --}}
+            <li class="nav-item d-none d-lg-block">
                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
             </li>
-            <li class="nav-item d-none d-sm-inline-block">
+            {{-- Link Dashboard ini juga hanya muncul di layar besar (desktop) --}}
+            <li class="nav-item d-none d-lg-inline-block">
                 <a href="{{ route('dashboard') }}" class="nav-link" title="Kembali ke Dashboard">
-                    <span class="d-none d-md-inline ml-2">Dashboard</span>
+                    Dashboard
                 </a>
             </li>
         </ul>
@@ -134,6 +144,10 @@
                     <span class="d-none d-md-inline ml-1">{{ session('user.namapemeriksa') ?? session('user.username') }}</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <a href="{{ route('dashboard') }}" class="dropdown-item">
+                        Dashboard
+                    </a>
+                    <div class="dropdown-divider"></div>
                     <a href="#" id="logout-button-rme" class="dropdown-item">
                         <i class="fas fa-sign-out-alt mr-2"></i> Logout
                     </a>
@@ -159,6 +173,11 @@
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
+        {{-- Kontainer ini hanya akan muncul di layar kecil (<992px) --}}
+        <div id="mobile-control-panel">
+            @yield('rme-control-panel')
+        </div>
+
         @yield('content')
     </div>
     <!-- /.content-wrapper -->
@@ -242,21 +261,27 @@
 
 {{-- Script untuk membuat footer responsif --}}
 <script>
-    $(document).ready(function() {
-        function toggleFooterFixed() {
-            // Breakpoint 992px (umum untuk tablet potret dan di bawahnya)
-            if ($(window).width() < 992) {
+    function adjustLayoutForScreenSize() {
+        const isMobile = $(window).width() < 992;
+
+        // Toggle footer fixed
+        if (isMobile) {
+            if ($('body').hasClass('layout-footer-fixed')) {
                 $('body').removeClass('layout-footer-fixed');
-            } else {
+            }
+        } else {
+            if (!$('body').hasClass('layout-footer-fixed')) {
                 $('body').addClass('layout-footer-fixed');
             }
         }
 
-        // Jalankan fungsi saat halaman pertama kali dimuat
-        toggleFooterFixed();
+        // Toggle sidebar vs mobile panel
+        // Tidak perlu lagi karena sudah ditangani oleh CSS media query
+    }
 
-        // Jalankan fungsi setiap kali ukuran jendela diubah
-        $(window).on('resize', toggleFooterFixed);
+    $(document).ready(function() {
+        adjustLayoutForScreenSize();
+        $(window).on('resize', adjustLayoutForScreenSize);
     });
 </script>
 
@@ -286,8 +311,9 @@
                 allowOutsideClick: false, // Mencegah user menutup notifikasi
                 timer: 10000, // Notifikasi akan tertutup otomatis setelah 10 detik
                 timerProgressBar: true
-            }).then(() => {
-                // Arahkan ke URL logout. Ini lebih bersih daripada submit form.
+            }).then((result) => {
+                // Arahkan ke URL logout. Menggunakan location.assign() dan kemudian
+                // location.href memastikan navigasi penuh ke halaman login yang baru.
                 window.location.href = "{{ route('logout') }}";
             });
         }
@@ -332,8 +358,10 @@
                 allowOutsideClick: false,
                 allowEscapeKey: false
             }).then(() => {
-                // Arahkan ke URL logout untuk memastikan pembersihan sesi yang benar.
-                window.location.href = "{{ route('logout') }}";
+                // Paksa muat ulang halaman. Karena sesi sudah tidak valid di server,
+                // middleware 'auth.custom' Laravel akan secara otomatis mengarahkan
+                // ke halaman login dengan CSRF token yang baru.
+                window.location.reload(true);
             });
         }
 

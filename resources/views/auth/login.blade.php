@@ -17,10 +17,10 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.min.css') }}">
 </head>
-<body class="hold-transition login-page">
+<body class="hold-transition login-page" style="background-image: url('{{ asset('img/bg.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
 <div class="login-box">
   <div class="login-logo">
-    <a href="/">
+    <a href="#">
         <img src="{{ asset('img/logo.png') }}" alt="Logo RS" style="width:100px; height:auto;">
         <br>
         <b>RSUI</b> Mutiara Bunda
@@ -34,7 +34,7 @@
       <form id="loginForm" action="{{ route('login') }}" method="post">
         @csrf
         <div class="input-group mb-3">
-          <input type="text" name="Username" class="form-control @error('Username') is-invalid @enderror" placeholder="Username" value="{{ old('Username') }}" required>
+          <input type="text" name="Username" id="username" class="form-control @error('Username') is-invalid @enderror" placeholder="Username" value="{{ old('Username') }}" required>
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-user"></span>
@@ -47,16 +47,21 @@
           @enderror
         </div>
         <div class="input-group mb-3">
-          <input type="password" name="Password" class="form-control" placeholder="Password" required>
+          <input type="password" name="Password" id="password" class="form-control @error('Password') is-invalid @enderror" placeholder="Password" required>
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-lock"></span>
             </div>
           </div>
+          @error('Password')
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+          @enderror
         </div>
         <div class="row">
           <div class="col-12">
-            <button type="submit" id="loginBtn" class="btn btn-primary btn-block">Sign In</button>
+            <button type="submit" id="loginBtn" class="btn btn-primary btn-block">Masuk</button>
           </div>
         </div>
       </form>
@@ -75,6 +80,10 @@
 
 <script>
 $(document).ready(function() {
+    // Hapus kelas error saat pengguna mulai mengetik lagi
+    $('#username, #password').on('input', function() {
+        $(this).removeClass('is-invalid').closest('.input-group').next('.invalid-feedback').remove();
+    });
     $('#loginForm').on('submit', function(e) {
         e.preventDefault(); // Mencegah form submit biasa
 
@@ -87,6 +96,10 @@ $(document).ready(function() {
         var loginButton = $('#loginBtn');
         loginButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
 
+        // Hapus semua pesan error sebelumnya
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+
         $.ajax({
             url: url,
             type: method,
@@ -98,7 +111,7 @@ $(document).ready(function() {
                         icon: 'success',
                         title: 'Login Berhasil!',
                         text: response.message,
-                        timer: 2000, // Alert akan hilang setelah 2 detik
+                        timer: 1000, // Alert akan hilang setelah 2 detik
                         showConfirmButton: false
                     }).then(() => {
                         // Redirect ke dashboard setelah alert ditutup
@@ -108,16 +121,24 @@ $(document).ready(function() {
             },
             error: function(xhr) {
                 // Menampilkan error validasi dari Laravel
-                var errors = xhr.responseJSON.errors;
-                var errorMessage = errors.Username ? errors.Username[0] : 'Terjadi kesalahan.';
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Login Gagal',
-                    text: errorMessage
-                }).then(() => {
-                    // Kembalikan tombol ke state semula jika login gagal
-                    loginButton.prop('disabled', false).html('Sign In');
-                });
+                var errors; // Definisikan di sini agar bisa diakses di luar blok if
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    errors = xhr.responseJSON.errors;
+                    if (errors.Username) {
+                        var errorMessage = errors.Username[0];
+                        $('#username').addClass('is-invalid').closest('.input-group').after('<span class="invalid-feedback d-block" role="alert"><strong>' + errorMessage + '</strong></span>');
+                    } else if (errors.Password) {
+                        var errorMessage = errors.Password[0];
+                        $('#password').addClass('is-invalid').closest('.input-group').after('<span class="invalid-feedback d-block" role="alert"><strong>' + errorMessage + '</strong></span>');
+                    }
+                }
+
+                // Kembalikan tombol ke state semula
+                loginButton.prop('disabled', false).html('Sign In');
+                // Fokus ke input yang salah
+                if (errors && errors.Password) {
+                    $('#password').focus();
+                }
             }
         });
     });

@@ -336,6 +336,9 @@ $(document).ready(function() {
     // =================================================================================
 
     // Ambil data pasien yang dikirim dari controller
+    // Inisialisasi Select2 pada dropdown DPJP
+    $('#RTL_DPJP').select2({ theme: 'bootstrap4', placeholder: '-- Pilih DPJP --', allowClear: true });
+
     const patientDetails = @json($patient ?? []);
 
     // Cek apakah ini mode update (data rm3b sudah ada)
@@ -463,16 +466,14 @@ $(document).ready(function() {
         if ($('#RTL_RANAP').is(':checked')) {
             $('#dpjpContainer').slideDown(300);
 
-            // --- IMPLEMENTASI BARU ---
-            // Jika ini BUKAN mode update (form baru) dan checkbox baru saja dicentang,
-            // coba isi otomatis DPJP dari detail pasien.
-            if (!isUpdateMode && !isInitialLoad) {
-                if (patientDetails && patientDetails.DPJP) {
-                    const dpjpValue = patientDetails.DPJP;
-                    const $dpjpSelect = $('#RTL_DPJP'); // Pastikan ID ini sesuai dengan select DPJP Anda
-
-                    if ($dpjpSelect.find(`option[value="${dpjpValue}"]`).length > 0) {
-                        $dpjpSelect.val(dpjpValue);
+            // --- LOGIKA BARU ---
+            // Coba isi otomatis DPJP dari detail pasien HANYA JIKA dropdown DPJP saat ini kosong.
+            // Ini mencegah override pilihan manual pengguna.
+            const $dpjpSelect = $('#RTL_DPJP');
+            if (!$dpjpSelect.val()) { // Cek jika belum ada nilai yang dipilih
+                if (patientDetails && patientDetails.DPJP) { // Cek jika ada data DPJP dari pasien
+                    if ($dpjpSelect.find(`option[value="${patientDetails.DPJP}"]`).length > 0) {
+                        $dpjpSelect.val(patientDetails.DPJP).trigger('change'); // Set nilai dan trigger change untuk Select2
                     }
                 }
             }
@@ -480,7 +481,7 @@ $(document).ready(function() {
         } else {
             $('#dpjpContainer').slideUp(300);
             if (!isInitialLoad) {
-                $('#RTL_DPJP').val(''); // Kosongkan nilai DPJP jika ranap tidak dicentang
+                $('#RTL_DPJP').val('').trigger('change'); // Kosongkan nilai DPJP dan trigger change untuk Select2
             }
         }
     }
@@ -512,6 +513,20 @@ $(document).ready(function() {
     // =================================================================================
     $('#form-rm3b-submit').on('submit', function(e) {
         e.preventDefault();
+
+        // Validasi: Pastikan salah satu checkbox RTL dipilih
+        const isRtlChecked = $('input[data-group="rtl"]:checked').length > 0;
+        if (!isRtlChecked) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Peringatan',
+                text: 'Anda harus memilih salah satu Rencana Tindak Lanjut (RTL).',
+            });
+            // Scroll ke bagian RTL untuk memudahkan pengguna
+            document.getElementById('RTL_RAJAL').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return; // Hentikan proses submit
+        }
+
         var form = $(this);
         var url = form.attr('action');
         var data = form.serialize();

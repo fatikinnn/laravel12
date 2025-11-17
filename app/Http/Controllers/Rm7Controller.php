@@ -251,6 +251,15 @@ class Rm7Controller extends Controller
             DB::connection('sqlsrv')->table('RM7_RUMAH')->where('NOPENDAFTARAN', $noPendaftaran)->where('NOTRANSFER', $noTransfer)->delete();
             if ($request->has('obat_rumah')) {
                 $counter = 1;
+                // Validasi backend untuk membatasi jumlah obat
+                if (count($request->input('obat_rumah')) > 5) {
+                    DB::connection('sqlsrv')->rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Jumlah maksimal obat dari rumah yang bisa ditambahkan adalah 5.'
+                    ], 422); // 422 Unprocessable Entity
+                }
+
                 foreach ($request->input('obat_rumah') as $obat) {
                     if (empty($obat['NAMA_OBAT'])) continue;
                     DB::connection('sqlsrv')->table('RM7_RUMAH')->insert([
@@ -273,6 +282,15 @@ class Rm7Controller extends Controller
             DB::connection('sqlsrv')->table('RM7_UNIT')->where('NOPENDAFTARAN', $noPendaftaran)->where('NOTRANSFER', $noTransfer)->delete();
             if ($request->has('obat_unit')) {
                 $counter = 1;
+                // Validasi backend untuk membatasi jumlah obat
+                if (count($request->input('obat_unit')) > 5) {
+                    DB::connection('sqlsrv')->rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Jumlah maksimal obat yang dibawa ke unit adalah 5.'
+                    ], 422); // 422 Unprocessable Entity
+                }
+
                 foreach ($request->input('obat_unit') as $obat) {
                     if (empty($obat['NAMA_OBAT'])) continue;
                     DB::connection('sqlsrv')->table('RM7_UNIT')->insert([

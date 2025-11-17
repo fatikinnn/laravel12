@@ -14,45 +14,50 @@
 
 @section('title', 'RME IGD')
 
-
-@section('rme-sidebar')
-        {{-- CARD PENCARIAN PASIEN --}}
-        <div id="search-card" class="card card-primary card-outline sticky-card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-search mr-1"></i>
-                    Pencarian Pasien
-                </h3>
-            </div>
-            <div class="card-body">
-                {{-- Area Pencarian --}}
-                <div class="form-group">
-                    <label for="norm">No. Rekam Medis</label>
-                    <div class="input-group">
-                        <input type="text" id="norm" name="norm" class="form-control" placeholder="Ketik 6 digit No.RM" maxlength="6" required>
-                        <div class="input-group-append">
-                            <span class="input-group-text" id="search-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
-                        </div>
+@php
+    // Konten untuk sidebar dan panel mobile didefinisikan di sini agar tidak duplikasi kode
+    $controlContent = '
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-search mr-1"></i>
+                Pencarian Pasien
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="norm">No. Rekam Medis</label>
+                <div class="input-group">
+                    <input type="text" id="norm" name="norm" class="form-control" placeholder="Ketik 6 digit No.RM" maxlength="6" required>
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="search-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
                     </div>
                 </div>
             </div>
         </div>
+    ';
+@endphp
 
-        {{-- CARD RIWAYAT KUNJUNGAN --}}
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-history mr-1"></i>
-                    Riwayat Kunjungan
-                </h3>
-            </div>
-            <div class="card-body" id="visit-history-container">
-                <p class="text-muted text-center">Silakan cari pasien terlebih dahulu.</p>
-            </div>
-            <div class="card-footer p-2" id="visit-history-pagination" style="display: none;">
-                <!-- Pagination controls will be inserted here -->
-            </div>
+@section('rme-sidebar')
+    {{-- CARD PENCARIAN PASIEN --}}
+    <div id="search-card" class="card card-primary card-outline sticky-card">
+        {!! $controlContent !!}
+    </div>
+
+    {{-- CARD RIWAYAT KUNJUNGAN --}}
+    <div class="card card-primary card-outline">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-history mr-1"></i>
+                Riwayat Kunjungan
+            </h3>
         </div>
+        <div class="card-body" id="visit-history-container">
+            <p class="text-muted text-center">Silakan cari pasien terlebih dahulu.</p>
+        </div>
+        <div class="card-footer p-2" id="visit-history-pagination" style="display: none;">
+            <!-- Pagination controls will be inserted here -->
+        </div>
+    </div>
 
     {{-- CARD DETAIL PASIEN (SCROLLABLE) --}}
     <div id="patient-details-card" class="card card-primary card-outline" style="display: none;">
@@ -66,6 +71,49 @@
             {{-- Konten detail pasien akan dimuat di sini oleh AJAX --}}
         </div>
     </div>
+@endsection
+
+@section('rme-control-panel')
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="card card-primary card-outline" id="mobile-control-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-search mr-1"></i>
+                    Pencarian Pasien
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {{-- Area Pencarian --}}
+                <div class="form-group">
+                    <label for="norm-mobile">No. Rekam Medis</label>
+                    <div class="input-group">
+                        <input type="text" id="norm-mobile" name="norm" class="form-control" placeholder="Ketik 6 digit No.RM" maxlength="6" required>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="search-spinner-mobile" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Riwayat Kunjungan Mobile --}}
+                <div id="visit-history-container-mobile" class="mt-3">
+                    <p class="text-muted text-center">Silakan cari pasien terlebih dahulu.</p>
+                </div>
+                <div class="card-footer p-2" id="visit-history-pagination-mobile" style="display: none;"></div>
+
+                {{-- Detail Pasien Mobile --}}
+                <div id="patient-details-card-mobile" class="mt-3" style="display: none;">
+                    <div id="patient-details-container-mobile"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('content')
@@ -122,11 +170,12 @@
                             @endif
 
                             {{-- SKRINING GIZI --}}
-                            @if ($isAdmin || $isDokterUmum || $isGizi)
+                            @if ($isAdmin || $isDokterUmum || $isGizi || $isBidan)
                                 <optgroup label="Skrining Gizi">
                                     <option value="rm6a_dewasa" data-url="{{ route('rme.igd.form.rm6a_dewasa.load') }}" data-kelompok-usia="dewasa">Skrining Gizi Dewasa</option>
                                     <option value="rm6a" data-url="{{ route('rme.igd.form.rm6a.load') }}" data-kelompok-usia="geriatri">Skrining Gizi Geriatri</option>
                                     <option value="rm26" data-url="{{ route('rme.igd.form.rm26.load') }}" data-kelompok-usia="anak">Skrining Gizi Anak</option>
+                                    <option value="skrininggiziibuhamil" data-url="{{ route('rme.igd.form.skrininggiziibuhamil.load') }}" data-gender="P">Skrining Gizi Ibu Hamil</option>
                                     <option value="rm29" data-url="{{ route('rme.igd.form.rm29.load') }}" data-kelompok-usia="neonatus">Skrining Gizi Neonatus</option>
                                 </optgroup>
                             @endif
@@ -346,10 +395,11 @@
             let selectedPatientData = null; // Menyimpan data pasien yang dipilih (termasuk NoRM)
             let selectedNoPendaftaran = null; // Menyimpan No Pendaftaran yang dipilih
             let currentFormText = ''; // Menyimpan teks dari form yang sedang aktif
-            let fullPatientDetails = null; // Variabel untuk menyimpan seluruh detail pasien
+            let formFillStatuses = {}; // Menyimpan status pengisian form
+            let fullPatientDetails = null; // Variabel untuk menyimpan seluruh detail pasien yang dipilih
 
             // Variabel untuk pagination riwayat kunjungan
-            let allVisits = [];
+            let allVisits = []; // Ini akan menjadi satu-satunya sumber data riwayat
             let currentVisitPage = 1;
             const itemsPerVisitPage = 5;
 
@@ -371,16 +421,20 @@
 
 
             // 1. Pencarian otomatis saat 6 digit NoRM dimasukkan
-            $('#norm').on('input', function() {
+            // Menggabungkan event handler untuk input desktop dan mobile
+            $(document).on('input', '#norm, #norm-mobile', function() {
                 const norm = $(this).val();
+                const isMobile = $(this).attr('id') === 'norm-mobile';
 
                 // Reset state setiap kali ada input baru untuk mencegah data lama terbawa
                 selectedNoPendaftaran = null;
                 selectedPatientData = null;
-                $('#patient-details-card').slideUp();
+                $('#patient-details-card, #patient-details-card-mobile').slideUp();
+                formFillStatuses = {}; // Reset status form
                 fullPatientDetails = null;
                 currentFormText = '';
                 $('#form-selection-card').slideUp();
+                $('#form-search-input').val('');
                 $('#form-container').html(`
                     <div id="initial-message" class="text-muted text-center" style="padding: 60px 0;">
                         <p style="font-size: 16px; line-height: 1.7;">
@@ -412,8 +466,12 @@
                 sessionStorage.removeItem('rmeIgdNorm');
                 sessionStorage.removeItem('rmeIgdNoPendaftaran');
 
+                // Sinkronkan nilai antara input desktop dan mobile
+                if (isMobile) $('#norm').val(norm);
+                else $('#norm-mobile').val(norm);
+
                 // Reset pagination
-                $('#visit-history-pagination').hide();
+                $('#visit-history-pagination, #visit-history-pagination-mobile').hide();
 
                 if (searchRequest) {
                     searchRequest.abort();
@@ -425,9 +483,9 @@
                         type: 'GET',
                         data: { norm: norm },
                         beforeSend: function() {
-                            $('#search-spinner').show(); // Spinner di input
-                            // Tampilkan pesan mencari yang lebih jelas
-                            $('#visit-history-container').html('<div class="text-center p-3"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari riwayat kunjungan...</div>');
+                            $('#search-spinner, #search-spinner-mobile').show();
+                            const loadingHtml = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari riwayat kunjungan...</div>';
+                            $('#visit-history-container, #visit-history-container-mobile').html(loadingHtml);
                         },
                         success: function(visits) {
                             allVisits = visits;
@@ -435,24 +493,28 @@
                         },
                         error: function(xhr) {
                             if (xhr.statusText !== 'abort') {
-                                $('#visit-history-container').html('<p class="text-danger text-center">Gagal memuat data.</p>');
+                                const errorHtml = '<p class="text-danger text-center">Gagal memuat data.</p>';
+                                $('#visit-history-container, #visit-history-container-mobile').html(errorHtml);
                             }
                         },
                         complete: function() {
-                            $('#search-spinner').hide();
+                            $('#search-spinner, #search-spinner-mobile').hide();
                             searchRequest = null;
                         }
                     });
                 } else {
-                    $('#visit-history-container').html('<p class="text-muted text-center">Silakan cari pasien terlebih dahulu.</p>');
+                    const initialHtml = '<p class="text-muted text-center">Silakan cari pasien terlebih dahulu.</p>';
+                    $('#visit-history-container, #visit-history-container-mobile').html(initialHtml);
                 }
             });
 
             // Fungsi untuk render halaman riwayat kunjungan
             function renderVisitHistoryPage(page) {
                 currentVisitPage = page;
-                const container = $('#visit-history-container');
-                const paginationControls = $('#visit-history-pagination');
+                // Target kedua kontainer (desktop dan mobile)
+                const container = $('#visit-history-container, #visit-history-container-mobile');
+                const paginationControls = $('#visit-history-pagination, #visit-history-pagination-mobile');
+
                 container.empty();
                 paginationControls.empty();
 
@@ -518,22 +580,26 @@
                 paginationControls.html(paginationHtml).show();
             }
 
-            $(document).on('click', '#prevVisitPage', function() {
-                if (currentVisitPage > 1) renderVisitHistoryPage(currentVisitPage - 1);
-            });
-            $(document).on('click', '#nextVisitPage', function() {
-                renderVisitHistoryPage(currentVisitPage + 1);
+            // Event handler untuk pagination (berlaku untuk kedua versi)
+            $(document).on('click', '#prevVisitPage, #nextVisitPage', function() {
+                const isPrev = $(this).attr('id').includes('prev');
+                if (isPrev) {
+                    if (currentVisitPage > 1) renderVisitHistoryPage(currentVisitPage - 1);
+                } else {
+                    const totalPages = Math.ceil(allVisits.length / itemsPerVisitPage);
+                    if (currentVisitPage < totalPages) renderVisitHistoryPage(currentVisitPage + 1);
+                }
             });
 
             // 2. Aksi saat tombol "Pilih" diklik
-            $('#visit-history-container').on('click', '.selectable-row', function() {
+            $(document).on('click', '#visit-history-container .selectable-row, #visit-history-container-mobile .selectable-row', function() {
                 const noPendaftaran = $(this).data('nopendaftaran');
                 selectedNoPendaftaran = noPendaftaran; // Simpan No Pendaftaran
-                selectedPatientData = { NoPendaftaran: noPendaftaran, NoRM: $('#norm').val() }; // Simpan NoRM juga
+                selectedPatientData = { NoPendaftaran: noPendaftaran, NoRM: $('#norm').val() || $('#norm-mobile').val() }; // Simpan NoRM juga
                 const row = $(this);
 
                 // Visual feedback
-                $('#visit-history-container tr').removeClass('table-primary');
+                $('#visit-history-container tr, #visit-history-container-mobile tr').removeClass('table-primary');
                 row.addClass('table-primary');
 
                 $.ajax({
@@ -541,12 +607,16 @@
                     type: 'GET',
                     data: { NoPendaftaran: noPendaftaran },
                     beforeSend: function() {
-                        $('#patient-details-container').html('<p class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat detail...</p>');
-                        $('#patient-details-card').slideDown();
+                        const loadingHtml = '<p class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat detail...</p>';
+                        $('#patient-details-container, #patient-details-container-mobile').html(loadingHtml);
+                        $('#patient-details-card, #patient-details-card-mobile').slideDown();
                     },
                     success: function(patient) {
                         // Simpan seluruh detail pasien ke variabel global
                         fullPatientDetails = patient;
+                        // Simpan status pengisian form
+                        // Simpan status pengisian form yang diterima dari backend
+                        formFillStatuses = patient.form_statuses || {};
                         // Perbarui daftar form berdasarkan demografi pasien
                         updateFormOptionsBasedOnPatient(patient);
 
@@ -572,44 +642,46 @@
                                 <i class="fas fa-search mr-1"></i> Cari Pasien Lain
                             </button>
                         `;
-                        $('#patient-details-container').html(patientDetailsHtml);
+                        // Tampilkan di kedua tempat (desktop dan mobile)
+                        $('#patient-details-container, #patient-details-container-mobile').html(patientDetailsHtml);
 
                         // Tampilkan card pemilihan form dan reset state
                         $('#initial-message').hide();
                         $('#form-selection-card').slideDown();
 
                         // Simpan state ke sessionStorage
-                        sessionStorage.setItem('rmeIgdNorm', $('#norm').val());
+                        sessionStorage.setItem('rmeIgdNorm', selectedPatientData.NoRM);
                         sessionStorage.setItem('rmeIgdNoPendaftaran', noPendaftaran);
 
                         // Cek apakah ada form yang sedang aktif di dropdown.
                         // Jika ada, picu event 'change' untuk memuat ulang form tersebut dengan data pasien baru.
                         // Jika tidak, atau jika form yang aktif tidak lagi tersedia, kosongkan kontainer.
-                        const currentFormValue = currentFormName;
-                        if (currentFormValue && formOptions.some(opt => opt.value === currentFormValue)) {
-                            loadRmeForm(currentFormName, formOptions.find(opt => opt.value === currentFormValue).url, currentFormText);
+                        if (currentFormName && formOptions.some(opt => opt.value === currentFormName)) {
+                            loadRmeForm(currentFormName, formOptions.find(opt => opt.value === currentFormName).url, currentFormText);
                         } else {
+                            currentFormName = ''; // Reset jika form tidak lagi valid
                             $('#form-container').html('<div class="text-muted text-center" style="padding: 50px 0;"><p>Silakan pilih formulir untuk ditampilkan.</p></div>');
                         }
                     },
                     error: function(xhr) {
                         Swal.fire('Error!', 'Gagal mengambil detail pasien.', 'error');
-                        $('#patient-details-card').slideUp();
+                        $('#patient-details-card, #patient-details-card-mobile').slideUp();
                     }
                 });
             });
 
             // Menampilkan alert jika mencoba memilih baris yang tidak dapat dipilih (Rawat Jalan)
-            $('#visit-history-container').on('click', '.not-selectable', function() {
+            $(document).on('click', '#visit-history-container .not-selectable, #visit-history-container-mobile .not-selectable', function() {
                 Swal.fire('Informasi', 'Formulir ini hanya dapat diisi untuk pasien dengan status Rawat Inap.', 'info');
             });
 
             // 3. Aksi saat tombol "Cari Pasien Lain" diklik
             $(document).on('click', '#reset-search', function() {
-                $('#norm').val('').focus();
-                $('#visit-history-container').html('<p class="text-muted text-center">Silakan cari pasien terlebih dahulu.</p>');
-                $('#patient-details-card').slideUp();
-                $('#visit-history-pagination').hide();
+                $('#norm, #norm-mobile').val('').focus();
+                const initialHtml = '<p class="text-muted text-center">Silakan cari pasien terlebih dahulu.</p>';
+                $('#visit-history-container, #visit-history-container-mobile').html(initialHtml);
+                $('#patient-details-card, #patient-details-card-mobile').slideUp();
+                $('#visit-history-pagination, #visit-history-pagination-mobile').hide();
                 $('#form-selection-card').slideUp();
                 $('#form-container').html(`
                     <div id="initial-message" class="text-muted text-center" style="padding: 60px 0;">
@@ -636,10 +708,10 @@
                         <p style="margin-top: 20px; font-size: 13px; color: #adb5bd;">
                             ⚙️ Sistem ini terintegrasi dengan database RME rumah sakit. Setiap perubahan akan tersimpan otomatis sesuai hak akses pengguna.
                         </p>
-                    </div>
-                `);
+                    </div>`);
                 selectedNoPendaftaran = null;
                 fullPatientDetails = null;
+                formFillStatuses = {};
                 currentFormText = '';
 
                 // Hapus state dari sessionStorage
@@ -791,13 +863,21 @@
 
                 let currentGroup = null;
                 items.forEach(item => {
+                    // Render group header jika itu adalah grup baru
                     if (item.group && item.group !== currentGroup) {
                         resultsContainer.append(`<div class="form-result-group">${item.group}</div>`);
                         currentGroup = item.group;
                     }
-                    resultsContainer.append(
-                        `<div class="form-result-item" data-value="${item.value}" data-url="${item.url}">${item.text}</div>`
-                    );
+
+                    // Tambahkan tanda centang jika formulir sudah diisi
+                    const isFilled = formFillStatuses[item.value];
+                    const checkmark = isFilled ? ' <i class="fas fa-check-circle text-success ml-2" title="Sudah Terisi"></i>' : '';
+
+                    // Render item formulir
+                    const itemHtml = `
+                        <div class="form-result-item" data-value="${item.value}" data-url="${item.url}">${item.text}${checkmark}</div>
+                    `;
+                    resultsContainer.append(itemHtml);
                 });
             }
 
@@ -948,8 +1028,8 @@
                 if (storedNorm && storedNoPendaftaran) {
                     console.log('Restoring state for NoRM:', storedNorm, 'and NoPendaftaran:', storedNoPendaftaran);
 
-                    // Isi input dan trigger pencarian
-                    $('#norm').val(storedNorm);
+                    // Isi input (keduanya) dan trigger pencarian di input desktop
+                    $('#norm, #norm-mobile').val(storedNorm);
                     $('#norm').trigger('input');
 
                     // Karena AJAX bersifat async, kita perlu menunggu sampai tabel riwayat dimuat

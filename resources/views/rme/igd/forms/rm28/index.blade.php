@@ -21,7 +21,7 @@
         {{-- ==================================================================================================================== --}}
         {{--                                                     BAGIAN A                                                         --}}
         {{-- ==================================================================================================================== --}}
-        <div class="card card-info">
+        <div class="card card-success">
             <div class="card-header">
                 <h3 class="card-title">BAGIAN A - ASESMEN NEONATUS</h3>
             </div>
@@ -239,7 +239,7 @@
         {{-- ==================================================================================================================== --}}
         {{--                                                     BAGIAN B                                                         --}}
         {{-- ==================================================================================================================== --}}
-        <div class="card card-info">
+        <div class="card card-success">
             <div class="card-header"><h3 class="card-title">BAGIAN B - IDENTIFIKASI BAYI DAN ASESMEN NYERI</h3></div>
             <div class="card-body">
                 <div class="form-group">
@@ -304,9 +304,15 @@
             </div>
         </div>
 
-        <div class="d-flex gap-2 mt-4">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-2"></i>{{ $submitButtonText }}</button>
-            <button type="button" class="btn btn-outline-danger" id="reset-rm28"><i class="fas fa-times-circle mr-2"></i>Batal / Reset</button>
+        <div class="card-footer bg-transparent">
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save mr-1"></i> {{ $submitButtonText }}
+                </button>
+                <button type="button" class="btn btn-secondary" id="reset-rm28">
+                    <i class="fas fa-sync-alt mr-1"></i> Reset
+                </button>
+            </div>
         </div>
     </form>
 </div>

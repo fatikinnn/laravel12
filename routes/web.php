@@ -227,6 +227,12 @@ Route::middleware(['auth.custom'])->group(function () {
                 Route::get('/load', [App\Http\Controllers\PknController::class, 'load'])->name('load');
                 Route::post('/store', [App\Http\Controllers\PknController::class, 'store'])->name('store');
             });
+
+            // Skrining Gizi Ibu Hamil Routes
+            Route::prefix('skrininggiziibuhamil')->name('skrininggiziibuhamil.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\SkriningGiziHamilController::class, 'load'])->name('load');
+                Route::post('/store', [App\Http\Controllers\SkriningGiziHamilController::class, 'store'])->name('store');
+            });
         });
 
         // Routes for RM16B - Monitoring Infus

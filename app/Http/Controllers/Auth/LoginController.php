@@ -30,14 +30,28 @@ class LoginController extends Controller
             'Password' => 'required|string',
         ]);
 
-        // Menggunakan parameter binding (?) untuk mencegah SQL Injection
-        // Secara eksplisit memilih koneksi 'sqlsrv'
+        // 1. Cek apakah user ada berdasarkan Username
+        $userObject = DB::connection('sqlsrv')->selectOne(
+            "SELECT * FROM SATUSEHATLOGIN WHERE Username = ?",
+            [$request->Username]
+        );
+
+        // Jika user tidak ditemukan sama sekali
+        if (!$userObject) {
+            $errorMessage = 'Username tidak ditemukan. Silakan hubungi IT.';
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $errorMessage, 'errors' => ['Username' => [$errorMessage]]], 422);
+            }
+            return back()->withInput($request->only('Username'))->withErrors(['Username' => $errorMessage]);
+        }
+
+        // 2. Jika user ditemukan, cek apakah password cocok dan user aktif
         $userObject = DB::connection('sqlsrv')->selectOne(
             "SELECT * FROM SATUSEHATLOGIN WHERE Username = ? AND Password = ? AND IsActive = 1",
             [$request->Username, $request->Password]
         );
 
-        // Jika user ditemukan
+        // Jika user ditemukan dengan password yang benar dan aktif
         if ($userObject) {
             // Konversi ke array asosiatif untuk menghindari masalah case-sensitivity
             $userArray = (array) $userObject;
@@ -67,10 +81,14 @@ class LoginController extends Controller
                 ->with('swal-success', 'Login Berhasil! Selamat Datang, ' . ($user['namapemeriksa'] ?? $user['username']));
         }
 
-        // Jika gagal, kembali ke halaman login dengan pesan error dan input sebelumnya.
-        // Ini adalah cara yang lebih standar dan tangguh.
-        return back()->withInput($request->only('Username'))
-                     ->withErrors(['Username' => 'Username atau Password salah.']);
+        // 3. Jika user ada tapi password salah atau tidak aktif
+        $errorMessage = 'Password salah atau akun Anda tidak aktif.';
+        if ($request->wantsJson()) {
+            // Kita kirim error ke field Password agar fokus input bisa dipindah ke sana
+            return response()->json(['message' => $errorMessage, 'errors' => ['Password' => [$errorMessage]]], 422);
+        }
+
+        return back()->withInput($request->only('Username'))->withErrors(['Password' => $errorMessage]);
     }
 
     /**

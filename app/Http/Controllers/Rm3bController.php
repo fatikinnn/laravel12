@@ -71,6 +71,20 @@ class Rm3bController extends Controller
      */
     public function storeOrUpdate(Request $request)
     {
+        // --- Validasi Server-side untuk RTL ---
+        if (
+            !$request->has('RTL_RAJAL') &&
+            !$request->has('RTL_RANAP') &&
+            !$request->has('RTL_MGL_IDG') &&
+            !$request->has('DIRUJUK_RS')
+        ) {
+            // Mengembalikan response error jika tidak ada RTL yang dipilih
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Rencana Tindak Lanjut (RTL) wajib dipilih salah satu.'
+            ], 422); // 422 Unprocessable Entity
+        }
+
         $noPendaftaran = $request->input('NOPENDAFTARAN');
 
         // Daftar semua kolom dari form RM3B

@@ -751,8 +751,22 @@ $(document).ready(function() {
         }
     });
 
-    $('#btn-add-obat-rumah-rm7').click(() => addObatRumahRow());
-    $('#btn-add-obat-unit-rm7').click(() => addObatUnitRow());
+    $('#btn-add-obat-rumah-rm7').click(function() {
+        if ($('#body-obat-rumah-rm7 tr').length >= 5) {
+            Swal.fire('Batas Maksimal', 'Anda hanya dapat menambahkan maksimal 5 obat dari rumah.', 'warning');
+            return;
+        }
+        addObatRumahRow();
+    });
+
+    $('#btn-add-obat-unit-rm7').click(function() {
+        if ($('#body-obat-unit-rm7 tr').length >= 5) {
+            Swal.fire('Batas Maksimal', 'Anda hanya dapat menambahkan maksimal 5 obat ke unit.', 'warning');
+            return;
+        }
+        addObatUnitRow();
+    });
+
     $(document).on('click', '.btn-remove-row-rm7', function() { $(this).closest('tr').remove(); });
     
     $('input[name="NYERI_GROUP"]').change(function() {

@@ -33,7 +33,7 @@
             <!--                                         TAB RM3D.1                                          -->
             <!-- =========================================================================================== -->
             <div class="tab-pane fade show active" id="rm3d1" role="tabpanel">
-                <div class="card card-outline card-info mt-3">
+                <div class="card card-outline card-success mt-3">
                     <div class="card-header"><h3 class="card-title">INFORMASI UMUM</h3></div>
                     <div class="card-body">
                         <div class="form-group">
@@ -43,7 +43,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">Cara Masuk & Rujukan</h3></div>
                     <div class="card-body">
                         <div class="row">
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">ANAMNESA</h3></div>
                     <div class="card-body">
                         <div class="form-group"><label>Keluhan Utama</label><textarea class="form-control" name="rm3d1_KELUHANUTAMA" rows="3">{{ getValue($rm3d1, 'KELUHANUTAMA') }}</textarea></div>
@@ -379,7 +379,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">Keadaan Umum & Penilaian Nyeri</h3></div>
                     <div class="card-body">
                         <div class="row">
@@ -447,7 +447,7 @@
             <!--                                         TAB RM3D.2                                          -->
             <!-- =========================================================================================== -->
             <div class="tab-pane fade" id="rm3d2" role="tabpanel">
-                <div class="card card-outline card-info mt-3">
+                <div class="card card-outline card-success mt-3">
                     <div class="card-header"><h3 class="card-title">KEBIDANAN</h3></div>
                     <div class="card-body">
                         <h5 class="font-weight-bold">Abdomen</h5>
@@ -496,7 +496,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">KANDUNGAN</h3></div>
                     <div class="card-body">
                         <div class="form-group"><label>Anogenital</label><textarea class="form-control" name="rm3d2_ANOGENITAL" rows="3">{{ getValue($rm3d2, 'ANOGENITAL') }}</textarea></div>
@@ -519,7 +519,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">NIFAS</h3></div>
                     <div class="card-body">
                         <div class="row">
@@ -531,7 +531,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">RIWAYAT PERSALINAN SEBELUMNYA</h3>
                         <div class="card-tools"><button type="button" class="btn btn-sm btn-success" id="btnAddRm16a1"><i class="fas fa-plus"></i> Tambah</button></div>
                     </div>
@@ -567,7 +567,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">RIWAYAT HAMIL SEKARANG</h3></div>
                     <div class="card-body">
                         <div class="row">
@@ -620,7 +620,7 @@
             <!--                                         TAB RM3D.3                                          -->
             <!-- =========================================================================================== -->
             <div class="tab-pane fade" id="rm3d3" role="tabpanel">
-                <div class="card card-outline card-info mt-3">
+                <div class="card card-outline card-success mt-3">
                     <div class="card-header"><h3 class="card-title">DATA PSIKOLOGIS</h3></div>
                     <div class="card-body">
                         <div class="form-group">
@@ -655,7 +655,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">BUDAYA PASIEN</h3></div>
                     <div class="card-body">
                         <div class="form-group"><label>Kebiasaan Pasien Saat Sakit (Pola Aktivitas dan Istirahat)</label><textarea class="form-control form-control-sm" name="rm3d3_KEBIASAANPSN" rows="2">{{ getValue($rm3d3, 'KEBIASAANPSN') }}</textarea></div>
@@ -696,7 +696,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">KEBUTUHAN BELAJAR / EDUKASI</h3></div>
                     <div class="card-body">
                         <div class="form-group">
@@ -738,7 +738,7 @@
                     </div>
                 </div>
 
-                <div class="card card-outline card-info">
+                <div class="card card-outline card-success">
                     <div class="card-header"><h3 class="card-title">DIAGNOSA, RESIKO, RENCANA, TINDAKAN</h3></div>
                     <div class="card-body">
                         <div class="form-group"><label>Diagnosa Kebidanan</label><textarea class="form-control" name="rm3d3_DIAGNOSAKEBIDANAN" rows="3">{{ getValue($rm3d3, 'DIAGNOSAKEBIDANAN') }}</textarea></div>
