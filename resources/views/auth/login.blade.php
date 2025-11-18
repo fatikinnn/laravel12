@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RSUI Mutiara Bunda | Log in</title>
+  <title>Masuk</title>
   <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 
   <!-- Google Font: Source Sans Pro -->
@@ -16,8 +16,33 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.min.css') }}">
+  <style>
+    .login-page {
+        position: relative; /* Diperlukan untuk z-index pseudo-element */
+        z-index: 0;
+        /* Gradasi warna yang lebih halus dari biru ke merah melalui ungu */
+        background: linear-gradient(160deg, #005A9C 0%, #4A3F8E 50%, #005A9C 100%);
+        overflow: hidden; /* Mencegah scrollbar jika pseudo-element sedikit keluar */
+    }
+    .login-page::before {
+        content: '';
+        position: fixed; /* Tetap di posisi viewport */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{{ asset('img/bg.jpg') }}');
+        background-size: cover;
+        background-position: center;
+        opacity: 0.1; /* Atur opasitas gambar (0.1 = 10%) */
+        z-index: -1; /* Letakkan di belakang konten */
+    }
+    .login-logo a {
+        color: #ffffff; /* Mengubah warna teks logo menjadi putih agar kontras */
+    }
+  </style>
 </head>
-<body class="hold-transition login-page" style="background-image: url('{{ asset('img/bg.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+<body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
     <a href="#">
@@ -29,7 +54,7 @@
   <!-- /.login-logo -->
   <div class="card">
     <div class="card-body login-card-body">
-      <p class="login-box-msg">Sign in to start your session</p>
+      <p class="login-box-msg pt-1">Silakan masuk dengan akun anda</p>
 
       <form id="loginForm" action="{{ route('login') }}" method="post">
         @csrf
@@ -134,7 +159,7 @@ $(document).ready(function() {
                 }
 
                 // Kembalikan tombol ke state semula
-                loginButton.prop('disabled', false).html('Sign In');
+                loginButton.prop('disabled', false).html('Masuk');
                 // Fokus ke input yang salah
                 if (errors && errors.Password) {
                     $('#password').focus();

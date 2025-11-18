@@ -1,26 +1,9 @@
 @extends('layouts.app')
-  <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 
 @section('title', 'Manajemen Pengguna')
 
 @push('styles')
-    {{-- <style>
-        .table-responsive {
-            overflow-x: auto;
-        }
-        .badge-success {
-            color: #fff;
-            background-color: #28a745;
-        }
-        .badge-danger {
-            color: #fff;
-            background-color: #dc3545;
-        }
-        .modal-body .row .col-sm-4 {
-            font-weight: bold;
-            color: #495057;
-        }
-    </style> --}}
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 @endpush
 
 @section('content-header')
@@ -48,10 +31,10 @@
             <i class="fas fa-users-cog text-primary mr-2"></i>
             Daftar Pengguna Sistem
         </h5>
-        <button class="btn btn-success btn-sm float-right mr-2" id="addBulkUserBtn">
+        <button class="btn btn-success btn-sm float-right" id="addBulkUserBtn">
             <i class="fas fa-users mr-2"></i>Tambah Massal
         </h5>
-        <button class="btn btn-primary btn-sm float-right" id="addUserBtn">
+        <button class="btn btn-primary btn-sm float-right mr-2" id="addUserBtn">
             <i class="fas fa-user-plus mr-2"></i>Tambah Pengguna
         </button>
     </div>
@@ -146,8 +129,6 @@
         </div>
     </div>
 </div>
-@endsection
-
 <!-- User Create Modal -->
 <div class="modal fade" id="userCreateModal" tabindex="-1" aria-labelledby="userCreateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -268,7 +249,6 @@
         </div>
     </div>
 </div>
-
 <!-- User Edit Modal -->
 <div class="modal fade" id="userEditModal" tabindex="-1" aria-labelledby="userEditModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -391,7 +371,6 @@
         </div>
     </div>
 </div>
-
 <!-- Bulk User Create Modal -->
 <div class="modal fade" id="userBulkCreateModal" tabindex="-1" aria-labelledby="userBulkCreateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -450,6 +429,7 @@ Format: Username Password No.Pemeriksa No.User Role" required></textarea>
         </div>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>

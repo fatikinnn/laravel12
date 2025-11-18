@@ -85,6 +85,9 @@
     <div class="card card-outline card-info shadow-sm mt-4">
         <div class="card-header">
             <h3 class="card-title mt-1"><i class="fas fa-history mr-2"></i>Riwayat Pemberian Obat</h3>
+            <div class="card-tools d-flex align-items-center">
+                <div id="paginationRiwayatObat" class="mr-2" style="display: none;"></div>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -104,7 +107,7 @@
                             <th>Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="bodyRiwayatObatRm18" class="text-center">
+                    <tbody id="bodyRiwayatObatRm18" class="text-center align-middle">
                         <tr><td colspan="10" class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat riwayat...</td></tr>
                     </tbody>
                 </table>
@@ -120,6 +123,10 @@ $(document).ready(function() {
     let allDaftarObat = [];
     let currentPageDaftarObat = 1;
     const itemsPerPageDaftarObat = 10;
+    // Variabel untuk pagination riwayat obat
+    let allRiwayatObat = [];
+    let currentPageRiwayatObat = 1;
+    const itemsPerPageRiwayatObat = 5; // Tampilkan 5 riwayat per halaman
 
     let signaturePadRm18;
 
@@ -255,42 +262,77 @@ $(document).ready(function() {
         });
     }
 
+    function renderRiwayatObatPage(page) {
+        currentPageRiwayatObat = page;
+        const tableBody = $('#bodyRiwayatObatRm18');
+        const paginationControls = $('#paginationRiwayatObat');
+        tableBody.empty();
+        paginationControls.empty();
+
+        const totalItems = allRiwayatObat.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPageRiwayatObat);
+
+        if (totalItems === 0) {
+            tableBody.append('<tr><td colspan="11" class="text-center">Belum ada riwayat pemberian obat.</td></tr>');
+            paginationControls.hide();
+            return;
+        }
+
+        const startIndex = (page - 1) * itemsPerPageRiwayatObat;
+        const endIndex = startIndex + itemsPerPageRiwayatObat;
+        const pageItems = allRiwayatObat.slice(startIndex, endIndex);
+
+        pageItems.forEach(item => {
+            const ttdImage = item.TTD_PENERIMA_BASE64
+                ? `<img src="data:image/jpeg;base64,${item.TTD_PENERIMA_BASE64}" alt="TTD" class="img-fluid" style="max-height: 40px;"/>`
+                : '<span class="text-muted">-</span>';
+            const tglBeri = item.TGL_PEMBERIAN ? moment(item.TGL_PEMBERIAN).format('DD/MM/YY') : '-';
+            const jamBeri = item.JAM_PEMBERIAN ? item.JAM_PEMBERIAN.substring(0, 5) : '-';
+            const tglObat = item.TGL_OBAT ? moment(item.TGL_OBAT).format('DD/MM/YY') : '-';
+            const jamObat = item.JAM_OBAT ? item.JAM_OBAT.substring(0, 5) : '-';
+
+            const row = `<tr data-counter="${item.COUNTER}">
+                            <td>${tglBeri} ${jamBeri}</td>
+                            <td>${item.NAMA_OBAT || '-'}</td>
+                            <td>${tglObat} ${jamObat}</td>
+                            <td>${item.DOSIS || ''}</td>
+                            <td>${item.FREKUENSI || '-'}</td>
+                            <td>${item.CARA_PEMBERIAN || '-'}</td>
+                            <td>${item.D_CHECK || '-'}</td>
+                            <td>${item.KETERANGAN || '-'}</td>
+                            <td>${(item.NAMA_PERAWAT || '').trim()}</td>
+                            <td class="text-center align-middle">${ttdImage}</td>
+                            <td class="text-center">
+                                <button class="btn btn-xs btn-danger btn-delete-riwayat-rm18" title="Hapus" data-counter="${item.COUNTER}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+            tableBody.append(row);
+        });
+
+        const prevDisabled = page === 1 ? 'disabled' : '';
+        const nextDisabled = page === totalPages ? 'disabled' : '';
+        const paginationHtml = `
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-primary btn-sm" id="prevPageRiwayat" ${prevDisabled}><i class="fas fa-chevron-left"></i></button>
+                <span class="text-muted small mx-2">Hal ${page} / ${totalPages}</span>
+                <button class="btn btn-outline-primary btn-sm" id="nextPageRiwayat" ${nextDisabled}><i class="fas fa-chevron-right"></i></button>
+            </div>
+        `;
+        paginationControls.html(paginationHtml).show();
+    }
+
     function loadRiwayatObat() {
         const tableBody = $('#bodyRiwayatObatRm18');
         tableBody.html('<tr><td colspan="11" class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat riwayat...</td></tr>');
         $.get("{{ route('rme.igd.rm18.history') }}", { noPendaftaran: noPendaftaran }, function(response) {
-            tableBody.empty();
             if (response.status === 'success' && response.data.length > 0) {
-                response.data.forEach(item => {
-                    const ttdImage = item.TTD_PENERIMA_BASE64
-                        ? `<img src="data:image/jpeg;base64,${item.TTD_PENERIMA_BASE64}" alt="TTD" class="img-fluid" style="max-height: 40px;"/>`
-                        : '<span class="text-muted">-</span>';
-                    const tglBeri = item.TGL_PEMBERIAN ? moment(item.TGL_PEMBERIAN).format('DD/MM/YY') : '-';
-                    const jamBeri = item.JAM_PEMBERIAN ? item.JAM_PEMBERIAN.substring(0, 5) : '-';
-                    const tglObat = item.TGL_OBAT ? moment(item.TGL_OBAT).format('DD/MM/YY') : '-';
-                    const jamObat = item.JAM_OBAT ? item.JAM_OBAT.substring(0, 5) : '-';
-
-                    const row = `<tr data-counter="${item.COUNTER}">
-                                    <td>${tglBeri} ${jamBeri}</td>
-                                    <td>${item.NAMA_OBAT || '-'}</td>
-                                    <td>${tglObat} ${jamObat}</td>
-                                    <td>${item.DOSIS || ''}</td>
-                                    <td>${item.FREKUENSI || '-'}</td>
-                                    <td>${item.CARA_PEMBERIAN || '-'}</td>
-                                    <td>${item.D_CHECK || '-'}</td>
-                                    <td>${item.KETERANGAN || '-'}</td>
-                                    <td>${(item.NAMA_PERAWAT || '').trim()}</td>
-                                    <td class="text-center align-middle">${ttdImage}</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-xs btn-danger btn-delete-riwayat-rm18" title="Hapus" data-counter="${item.COUNTER}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>`;
-                    tableBody.append(row);
-                });
+                allRiwayatObat = response.data;
+                renderRiwayatObatPage(1);
             } else {
-                tableBody.append('<tr><td colspan="11" class="text-center">Belum ada riwayat pemberian obat.</td></tr>');
+                allRiwayatObat = [];
+                renderRiwayatObatPage(1);
             }
         }).fail(() => {
             tableBody.html('<tr><td colspan="11" class="text-center text-danger">Gagal memuat riwayat.</td></tr>');
@@ -311,6 +353,15 @@ $(document).ready(function() {
 
     $(document).on('click', '#nextPageObat', function() {
         renderDaftarObatPage(currentPageDaftarObat + 1);
+    });
+
+    $(document).on('click', '#prevPageRiwayat', function() {
+        if (currentPageRiwayatObat > 1) renderRiwayatObatPage(currentPageRiwayatObat - 1);
+    });
+
+    $(document).on('click', '#nextPageRiwayat', function() {
+        const totalPages = Math.ceil(allRiwayatObat.length / itemsPerPageRiwayatObat);
+        if (currentPageRiwayatObat < totalPages) renderRiwayatObatPage(currentPageRiwayatObat + 1);
     });
 
     $(document).on('click', '#tabelDaftarObatRm18 .clickable-row', function() {

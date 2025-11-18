@@ -225,6 +225,9 @@
                                 @if ($isAdmin || $isPerawatBidan)
                                 <option value="rm18" data-url="{{ route('rme.igd.rm18.load') }}">RM18 - Catatan Pemberian Obat</option>
                                 <option value="rm24d" data-url="{{ route('rme.igd.rm24d.load') }}">RM24D - Pengelompokan Data</option>
+                                @endif
+                                @if ($isAdmin || $isBidan)
+                                <option value="rm55" data-url="{{ route('rme.igd.form.rm55.load') }}">RM55 - Surat Keterangan Lahir</option>
                                 <option value="rm7" data-url="{{ route('rme.igd.form.rm7.load') }}">RM7 - Transfer Pasien Internal</option>
                                 @endif
                                 @if ($isAdmin || $isBidan)
@@ -375,8 +378,6 @@
         color: #6c757d;
     }
 </style>
-{{-- Lightbox2 CSS --}}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
 @endpush
 
 {{-- Seluruh script AJAX dipindahkan ke sini --}}
@@ -1117,10 +1118,4 @@
 
         });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="{{ asset('AdminLTE/plugins/chart.js/Chart.bundle.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-    {{-- Lightbox2 JS --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
 @endpush

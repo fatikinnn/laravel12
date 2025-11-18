@@ -121,7 +121,7 @@ class RmeIgdController extends Controller
         // Ini adalah satu-satunya tempat yang perlu Anda perbarui jika ada form baru atau perubahan tabel.
         $formTableMap = [
             'rm3a' => ['RM3A'],
-            'rm3b' => ['RM3B', 'RMIGD'],
+            'rm3b' => ['RM3B'],
             'rm1c' => ['RM1C'],
             'rm5' => ['RM5'],
             'rm3d' => ['RM3D1', 'RM3D2', 'RM3D3'], // Contoh form dengan banyak tabel

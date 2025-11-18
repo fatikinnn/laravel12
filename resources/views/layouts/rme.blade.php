@@ -17,6 +17,8 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.3.2/dist/select2-bootstrap4.min.css">
     <!-- Theme style -->
+    <!-- Lightbox2 CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
     <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.min.css') }}">
 
     <style>
@@ -200,6 +202,15 @@
 <script src="{{ asset('adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Pustaka JS Terpusat -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="{{ asset('AdminLTE/plugins/chart.js/Chart.bundle.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<!-- Lightbox2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
+
 
 {{-- Script untuk konfirmasi logout --}}
 <script>
@@ -312,9 +323,9 @@
                 timer: 10000, // Notifikasi akan tertutup otomatis setelah 10 detik
                 timerProgressBar: true
             }).then((result) => {
-                // Arahkan ke URL logout. Menggunakan location.assign() dan kemudian
-                // location.href memastikan navigasi penuh ke halaman login yang baru.
-                window.location.href = "{{ route('logout') }}";
+                // Langsung arahkan ke halaman login. Ini akan memastikan halaman login
+                // yang didapat adalah halaman baru dengan CSRF token yang valid.
+                window.location.href = "{{ route('login') }}";
             });
         }
 
@@ -358,9 +369,8 @@
                 allowOutsideClick: false,
                 allowEscapeKey: false
             }).then(() => {
-                // Paksa muat ulang halaman. Karena sesi sudah tidak valid di server,
-                // middleware 'auth.custom' Laravel akan secara otomatis mengarahkan
-                // ke halaman login dengan CSRF token yang baru.
+                // Paksa muat ulang halaman dari server (bukan dari cache).
+                // Middleware 'auth' akan mengarahkan ke halaman login dengan token baru.
                 window.location.reload(true);
             });
         }

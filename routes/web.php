@@ -233,6 +233,14 @@ Route::middleware(['auth.custom'])->group(function () {
                 Route::get('/load', [App\Http\Controllers\SkriningGiziHamilController::class, 'load'])->name('load');
                 Route::post('/store', [App\Http\Controllers\SkriningGiziHamilController::class, 'store'])->name('store');
             });
+
+            // Routes untuk Form RM55
+            Route::prefix('rm55')->name('rm55.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\Rm55Controller::class, 'load'])->name('load');
+                Route::get('/detail', [App\Http\Controllers\Rm55Controller::class, 'detail'])->name('detail');
+                Route::post('/store', [App\Http\Controllers\Rm55Controller::class, 'store'])->name('store');
+                Route::get('/image/{noPendaftaran}', [App\Http\Controllers\Rm55Controller::class, 'showImage'])->name('showImage')->where('noPendaftaran', '.*');
+            });
         });
 
         // Routes for RM16B - Monitoring Infus
