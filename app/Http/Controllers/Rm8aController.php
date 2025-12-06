@@ -66,6 +66,25 @@ class Rm8aController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan.'], 404);
         }
 
+        // Konversi TTD_PENERIMA (image/binary) ke Base64 jika ada
+        if (isset($detail->TTD_PENERIMA) && !empty($detail->TTD_PENERIMA)) {
+            $imageData = $detail->TTD_PENERIMA;
+            $binaryData = $imageData;
+
+            // Driver SQL Server sering mengembalikan data 'image' sebagai hex string
+            if (is_string($imageData) && strpos($imageData, '0x') === 0) {
+                $binaryData = hex2bin(substr($imageData, 2));
+            } elseif (is_string($imageData) && ctype_xdigit($imageData)) {
+                // Fallback jika hanya hex string tanpa '0x'
+                $binaryData = hex2bin($imageData);
+            }
+
+            // Buat data URL Base64
+            $detail->TTD_PENERIMA_BASE64 = 'data:image/jpeg;base64,' . base64_encode($binaryData);
+        } else {
+            $detail->TTD_PENERIMA_BASE64 = null;
+        }
+
         return response()->json(['status' => 'success', 'data' => $detail]);
     }
 
@@ -143,6 +162,29 @@ class Rm8aController extends Controller
             return response()->json(['status' => 'success', 'message' => $message]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => 'Gagal menyimpan data: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function destroy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'noPendaftaran' => 'required|string',
+            'counter' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid.'], 400);
+        }
+
+        try {
+            DB::connection('sqlsrv')->table('RM8A')
+                ->where('NOPENDAFTARAN', $request->noPendaftaran)
+                ->where('COUNTER', $request->counter)
+                ->delete();
+
+            return response()->json(['status' => 'success', 'message' => 'Data berhasil dihapus.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
         }
     }
 

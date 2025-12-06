@@ -39,7 +39,7 @@ class Rm55Controller extends Controller
 
         // Tentukan NOPEMERIKSA yang akan dipilih
         // Prioritas: data yang sudah tersimpan di RM55, fallback ke data DPJP dari pendaftaran.
-        $selectedNopemeriksa = $existingData->NOMEPERIKSA ?? null;
+        $selectedNopemeriksa = $existingData->NOPEMERIKSA ?? null;
         if (!$selectedNopemeriksa && !empty($pasien['DPJP'])) {
             $defaultDpjp = $dokterList->firstWhere('NAMAPEMERIKSA', trim($pasien['DPJP']));
             $selectedNopemeriksa = $defaultDpjp->NOPEMERIKSA ?? null;
@@ -94,7 +94,7 @@ class Rm55Controller extends Controller
             'BB' => 'nullable|string|max:25',
             'PB' => 'nullable|string|max:25',
             'DPJP' => 'nullable|string|max:100',
-            'NOMEPERIKSA' => 'nullable|string|max:5',
+            'NOPEMERIKSA' => 'nullable|string|max:5',
             'PETUGAS_RNIFAS' => 'nullable|string|max:100',
             'NM_PENERIMA' => 'nullable|string|max:100',
             'TTD_PENERIMA' => 'nullable|string', // Base64
@@ -137,6 +137,13 @@ class Rm55Controller extends Controller
             unset($data['TTD_PENERIMA']);
         }
 
+        // Pisahkan data tanda tangan dari data lainnya
+        $signatureData = null;
+        if (isset($data['TTD_PENERIMA'])) {
+            $signatureData = ['TTD_PENERIMA' => $data['TTD_PENERIMA']];
+            unset($data['TTD_PENERIMA']);
+        }
+
         try {
             $noPendaftaran = $request->input('NOPENDAFTARAN');
             $existing = DB::connection('sqlsrv')->table('RM55')->where('NOPENDAFTARAN', $noPendaftaran)->first();
@@ -144,6 +151,10 @@ class Rm55Controller extends Controller
             if ($existing) {
                 // Update: Hanya update data yang dikirim
                 DB::connection('sqlsrv')->table('RM55')->where('NOPENDAFTARAN', $noPendaftaran)->update($data);
+                // Update tanda tangan secara terpisah jika ada
+                if ($signatureData) {
+                    DB::connection('sqlsrv')->table('RM55')->where('NOPENDAFTARAN', $noPendaftaran)->update($signatureData);
+                }
                 $message = 'Data berhasil diperbarui.';
             } else {
                 // Insert: Tambahkan data user dan waktu entry
@@ -151,6 +162,10 @@ class Rm55Controller extends Controller
                 $data['TGLJAM_ENTRY'] = $now->format('Y-m-d H:i:s');
                 $data['NOPENDAFTARAN'] = $noPendaftaran;
                 DB::connection('sqlsrv')->table('RM55')->insert($data);
+                // Insert tanda tangan secara terpisah jika ada
+                if ($signatureData) {
+                    DB::connection('sqlsrv')->table('RM55')->where('NOPENDAFTARAN', $noPendaftaran)->update($signatureData);
+                }
                 $message = 'Data berhasil disimpan.';
             }
 

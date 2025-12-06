@@ -12,7 +12,7 @@
 
 @extends('layouts.rme')
 
-@section('title', 'RME IGD')
+@section('title', 'Assesmen RME')
 
 @php
     // Konten untuk sidebar dan panel mobile didefinisikan di sini agar tidak duplikasi kode
@@ -120,7 +120,7 @@
     {{-- Area konten utama untuk form RME --}}
     <div class="content-header">
         <div class="container-fluid">
-            <h1 class="m-0">Formulir Asesmen IGD</h1>
+            <h1 class="m-0">Formulir Asesmen RME</h1>
         </div>
     </div>
 
@@ -204,6 +204,8 @@
                                 <option value="rm17" data-url="{{ route('rme.igd.rm17.load') }}">RM17 - Tanda Vital (TTV)</option>
                                 <option value="rm16b" data-url="{{ route('rme.igd.rm16b.load') }}">RM16B - Monitoring Infus</option>
                                     <option value="rm9a3" data-url="{{ route('rme.igd.form.rm9a3.load') }}" data-gender="P">RM9A3 - Partograf</option>
+                                <option value="skriningsepsis" data-url="{{ route('rme.igd.form.skriningsepsis.load') }}">Skrining Sepsis</option>
+                                <option value="lukareeda" data-url="{{ route('rme.igd.form.lukareeda.load') }}">Penilaian Luka REEDA</option>
                                 </optgroup>
                             @endif
 
@@ -226,9 +228,12 @@
                                 <option value="rm18" data-url="{{ route('rme.igd.rm18.load') }}">RM18 - Catatan Pemberian Obat</option>
                                 <option value="rm24d" data-url="{{ route('rme.igd.rm24d.load') }}">RM24D - Pengelompokan Data</option>
                                 @endif
-                                @if ($isAdmin || $isBidan)
-                                <option value="rm55" data-url="{{ route('rme.igd.form.rm55.load') }}">RM55 - Surat Keterangan Lahir</option>
+                                @if ($isAdmin || $isPerawatBidan)
+                                <option value="rm55" data-url="{{ route('rme.igd.form.rm55.load') }}">RM55 - Penyerahan dan Persetujuan Rawat Gabung</option>
                                 <option value="rm7" data-url="{{ route('rme.igd.form.rm7.load') }}">RM7 - Transfer Pasien Internal</option>
+                                @endif
+                                @if ($isAdmin || $isBidan)
+                                <option value="rm80" data-url="{{ route('rme.igd.form.rm80.load') }}">RM80 - Berita Acara Serah Terima Bayi</option>
                                 @endif
                                 @if ($isAdmin || $isBidan)
                                     <option value="rm57" data-url="{{ route('rme.igd.form.rm57.load') }}" data-gender="P">RM57 - Surat Keterangan Bersalin</option>
@@ -239,10 +244,12 @@
                                 @if ($isAdmin || $isBidan)
                                     <option value="pkn" data-url="{{ route('rme.igd.form.pkn.load') }}" data-kelompok-usia="neonatus">PKN - Perawatan Kesehatan Neonatal</option>
                                 @endif
+                                <option value="mcu" data-url="{{ route('rme.igd.form.mcu.load') }}">MCU - Medical Check Up</option>
                             </optgroup>
                             
                             <optgroup label="Penunjang">
                                 <option value="fotopenunjang" data-url="{{ route('rme.igd.form.fotopenunjang.load') }}">FOTO - Upload Foto Penunjang</option>
+                                {{-- <option value="permintaan-penunjang" data-url="{{ route('rme.igd.form.permintaan-penunjang.load') }}">PERMINTAAN - Permintaan Penunjang (Lab, Rad, dll)</option> --}}
                             </optgroup>
                         </select>
                     </div>
@@ -490,7 +497,13 @@
                         },
                         success: function(visits) {
                             allVisits = visits;
-                            renderVisitHistoryPage(1);
+                            renderVisitHistoryPage(1); // Render tabel riwayat
+
+                            // --- AUTO SELECT FIRST VISIT ---
+                            // Jika ada riwayat kunjungan, otomatis klik baris pertama.
+                            if (visits.length > 0) {
+                                $('#visit-history-container tr.selectable-row:first').click();
+                            }
                         },
                         error: function(xhr) {
                             if (xhr.statusText !== 'abort') {
@@ -533,8 +546,7 @@
                     let tglDaftar = new Date(visit.TanggalDaftar)
                         .toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })
                         .replace(/\//g, '-');
-                    let isRawatInap = visit.Rawat.trim().toLowerCase() === 'rawat inap';
-                    let rowClass = isRawatInap ? 'selectable-row' : 'not-selectable';
+                    let rowClass = 'selectable-row'; // Semua baris sekarang bisa dipilih
 
                     return `
                         <tr data-nopendaftaran="${$.trim(visit.NoPendaftaran)}" class="${rowClass}">
@@ -542,7 +554,7 @@
                             <td>${tglDaftar}</td>
                             <td>${visit.NamaPasien}</td>
                             <td>
-                                ${visit.Rawat === 'Rawat Inap' 
+                                ${visit.Rawat.trim() === 'Rawat Inap' 
                                     ? '<span class="badge badge-warning">Rawat Inap</span>' 
                                     : '<span class="badge badge-info">Rawat Jalan</span>'}
                             </td>
@@ -593,15 +605,16 @@
             });
 
             // 2. Aksi saat tombol "Pilih" diklik
-            $(document).on('click', '#visit-history-container .selectable-row, #visit-history-container-mobile .selectable-row', function() {
+            $(document).on('click', '.selectable-row', function() {
                 const noPendaftaran = $(this).data('nopendaftaran');
                 selectedNoPendaftaran = noPendaftaran; // Simpan No Pendaftaran
                 selectedPatientData = { NoPendaftaran: noPendaftaran, NoRM: $('#norm').val() || $('#norm-mobile').val() }; // Simpan NoRM juga
-                const row = $(this);
 
                 // Visual feedback
-                $('#visit-history-container tr, #visit-history-container-mobile tr').removeClass('table-primary');
-                row.addClass('table-primary');
+                // Hapus highlight dari semua baris di kedua kontainer
+                $('#visit-history-container .selectable-row, #visit-history-container-mobile .selectable-row').removeClass('table-primary');
+                // Tambahkan highlight ke baris yang sesuai di kedua kontainer menggunakan data-nopendaftaran
+                $(`.selectable-row[data-nopendaftaran="${noPendaftaran}"]`).addClass('table-primary');
 
                 $.ajax({
                     url: "{{ route('rme.igd.getPatientDetails') }}",
@@ -669,11 +682,6 @@
                         $('#patient-details-card, #patient-details-card-mobile').slideUp();
                     }
                 });
-            });
-
-            // Menampilkan alert jika mencoba memilih baris yang tidak dapat dipilih (Rawat Jalan)
-            $(document).on('click', '#visit-history-container .not-selectable, #visit-history-container-mobile .not-selectable', function() {
-                Swal.fire('Informasi', 'Formulir ini hanya dapat diisi untuk pasien dengan status Rawat Inap.', 'info');
             });
 
             // 3. Aksi saat tombol "Cari Pasien Lain" diklik

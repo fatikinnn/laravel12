@@ -46,7 +46,24 @@ class Rm7Controller extends Controller
             ->orderBy('R.NAMARUANG')
             ->get();
 
-        return view('rme.igd.forms.rm7.index', compact('noPendaftaran', 'norm', 'user', 'patientDetails', 'ruangan', 'dokterList'));
+        // Ambil ruangan tujuan otomatis dari booking terakhir di RANAP
+        $ruangTujuanOtomatis = '';
+        $ranapTerakhir = DB::connection('sqlsrv')
+            ->table('RANAP')
+            ->where('CEKOUT', 'N') // Hanya ambil mutasi yang masih aktif (belum checkout)
+            ->where('NOPENDAFTARAN', $noPendaftaran)
+            ->orderBy('MUTASI', 'desc')
+            ->first(['NOBANGSAL']);
+
+        if ($ranapTerakhir && !empty(trim($ranapTerakhir->NOBANGSAL))) {
+            $ruangInfo = DB::connection('sqlsrv')
+                ->table('RUANGINAP')
+                ->where('NORUANG', trim($ranapTerakhir->NOBANGSAL))
+                ->first(['NAMARUANG']);
+            $ruangTujuanOtomatis = $ruangInfo ? trim($ruangInfo->NAMARUANG) : '';
+        }
+
+        return view('rme.igd.forms.rm7.index', compact('noPendaftaran', 'norm', 'user', 'patientDetails', 'ruangan', 'dokterList', 'ruangTujuanOtomatis'));
     }
 
     /**
@@ -123,6 +140,17 @@ class Rm7Controller extends Controller
                 $data['NYERI_TIDAK'] = 1;
             }
 
+            // Menangani nilai checkbox indikasi ICU
+            $indikasiIcuFields = ['GANGGUAN_NAFAS', 'GANGGUAN_OT', 'INFEKSIBERAT', 'PASCAOPERASI', 'GANGGUAN_ELEKTROLIT'];
+            foreach ($indikasiIcuFields as $field) {
+                // Jika checkbox dicentang, nilainya akan '1'. Jika tidak, atur ke '0'.
+                if ($request->has($field)) {
+                    $data[$field] = 1;
+                } else {
+                    $data[$field] = 0;
+                }
+            }
+
             if ($isUpdate) {
                 // --- LOGIKA UPDATE ---
                 $existing = DB::connection('sqlsrv')->table('rm7')->where('NOPENDAFTARAN', $noPendaftaran)->where('NOTRANSFER', $noTransfer)->first();
@@ -152,6 +180,30 @@ class Rm7Controller extends Controller
                         $data['TGLJAM_TERIMA'] = Carbon::now();
                     }
 
+                    // --- LOGIKA BARU: UPDATE STATUS BED SAAT PASIEN DITERIMA ---
+                    if ($isNewReceiver) {
+                        $ruanganAsal = trim($existing->ASAL_PASIEN_RUANGAN_TEXT);
+                        $ruanganTujuan = trim($request->input('PINDAH_KE_RUANG_TEXT'));
+
+                        // 1. Kosongkan bed lama jika ruangan tersebut ada di tabel RUANGINAP.
+                        if ($ruanganAsal) {
+                            $ruangAsalExists = DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $ruanganAsal)->exists();
+                            if ($ruangAsalExists) {
+                                DB::connection('sqlsrv')->table('RUANGINAP')
+                                    ->where('NAMARUANG', $ruanganAsal)
+                                    ->update(['PAKAI' => 'N']);
+                            }
+                        }
+
+                        // 2. Isi bed baru jika ruangan tujuan ada di tabel RUANGINAP.
+                        if ($ruanganTujuan) {
+                            $ruangTujuanExists = DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $ruanganTujuan)->exists();
+                            if ($ruangTujuanExists) {
+                                DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $ruanganTujuan)->update(['PAKAI' => 'Y']);
+                            }
+                        }
+                    }
+
                     // --- LOGIKA UPDATE RANAP (SESUAI NATIVE CODE) ---
                     $namaRuangTujuan = $request->input('PINDAH_KE_RUANG_TEXT');
                     if ($namaRuangTujuan) {
@@ -179,7 +231,7 @@ class Rm7Controller extends Controller
                                     DB::connection('sqlsrv')->table('RANAP')
                                         ->where('NOPENDAFTARAN', $noPendaftaran)
                                         ->where('MUTASI', $mutasiLama)
-                                        ->update(['NOBANGSAL' => $newNobangsal, 'KELAS' => $newKodekelas]);
+                                        ->update(['NOBANGSAL' => $newNobangsal]);
                                 } else {
                                     // SKENARIO 2: KELAS BERBEDA, BUAT MUTASI BARU
                                     $now = Carbon::now();
@@ -311,6 +363,50 @@ class Rm7Controller extends Controller
         } catch (\Exception $e) {
             DB::connection('sqlsrv')->rollBack();
             return response()->json(['status' => 'error', 'message' => 'Gagal menyimpan data: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Delete a specific transfer record.
+     */
+    public function destroy(Request $request)
+    {
+        $noPendaftaran = $request->input('noPendaftaran');
+        $noTransfer = $request->input('noTransfer');
+        $user = Session::get('user.username', 'SYSTEM');
+
+        DB::connection('sqlsrv')->beginTransaction();
+        try {
+            $transfer = DB::connection('sqlsrv')
+                ->table('rm7')
+                ->where('NOPENDAFTARAN', $noPendaftaran)
+                ->where('NOTRANSFER', $noTransfer)
+                ->first(['PERAWAT_MENYERAHKAN', 'PERAWAT_MENERIMA']);
+
+            if (!$transfer) {
+                DB::connection('sqlsrv')->rollBack();
+                return response()->json(['status' => 'error', 'message' => 'Data transfer tidak ditemukan.'], 404);
+            }
+
+            // Cek otorisasi: hanya perawat yang menyerahkan atau menerima yang boleh menghapus.
+            $isSender = trim($transfer->PERAWAT_MENYERAHKAN) === $user;
+            $isReceiver = trim($transfer->PERAWAT_MENERIMA) === $user;
+
+            if (!$isSender && !$isReceiver) {
+                DB::connection('sqlsrv')->rollBack();
+                return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk menghapus data ini.'], 403);
+            }
+
+            // Hapus data terkait di tabel lain terlebih dahulu
+            DB::connection('sqlsrv')->table('RM7_RUMAH')->where('NOPENDAFTARAN', $noPendaftaran)->where('NOTRANSFER', $noTransfer)->delete();
+            DB::connection('sqlsrv')->table('RM7_UNIT')->where('NOPENDAFTARAN', $noPendaftaran)->where('NOTRANSFER', $noTransfer)->delete();
+            DB::connection('sqlsrv')->table('rm7')->where('NOPENDAFTARAN', $noPendaftaran)->where('NOTRANSFER', $noTransfer)->delete();
+
+            DB::connection('sqlsrv')->commit();
+            return response()->json(['status' => 'success', 'message' => 'Data transfer berhasil dihapus.']);
+        } catch (\Exception $e) {
+            DB::connection('sqlsrv')->rollBack();
+            return response()->json(['status' => 'error', 'message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
         }
     }
 }

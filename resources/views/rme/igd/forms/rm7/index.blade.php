@@ -6,8 +6,10 @@
     <input type="hidden" id="rm7-dpjp" value="{{ $patientDetails['DPJP'] ?? '' }}">
     <input type="hidden" id="rm7-diagnosa" value="{{ trim($patientDetails['DIAGNOSIS_UTAMA'] ?? '') }}">
     <input type="hidden" id="rm7-url-history" value="{{ route('rme.igd.form.rm7.history') }}">
+    <input type="hidden" id="rm7-ruang-tujuan-otomatis" value="{{ $ruangTujuanOtomatis ?? '' }}">
     <input type="hidden" id="rm7-url-detail" value="{{ route('rme.igd.form.rm7.detail') }}">
     <input type="hidden" id="rm7-url-store" value="{{ route('rme.igd.form.rm7.store') }}">
+    <input type="hidden" id="rm7-url-destroy" value="{{ route('rme.igd.form.rm7.destroy') }}">
 
     {{-- Riwayat Transfer --}}
     <div class="card card-outline card-info shadow-sm mb-4">
@@ -31,7 +33,7 @@
                             <th class="text-left">Asal & Tujuan</th>
                             <th class="text-left d-none d-md-table-cell">Diserahkan Oleh</th>
                             <th class="text-left d-none d-md-table-cell">Diterima Oleh</th>
-                            <th class="text-center" style="width: 15%;">Status</th>
+                            <th class="text-center" style="width: 20%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="history-body-rm7">
@@ -66,6 +68,7 @@
                                 <select class="form-control" id="asal-ruangan-rm7" name="ASAL_PASIEN_RUANGAN_TEXT" required>
                                     <option value="">-- Pilih Ruangan Asal --</option>
                                     <option value="PONEK">PONEK</option>
+                                    <option value="IBS">IBS</option>
                                     <option value="Rawat Jalan">Rawat Jalan</option>
                                     @foreach ($ruangan as $ruang)
                                         <option value="{{ trim($ruang->NAMARUANG) }}">{{ trim($ruang->NAMAKELAS) }} - {{ trim($ruang->NAMARUANG) }}</option>
@@ -108,7 +111,23 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-12 form-group">
+                        <div class="col-md-6" id="indikasi-masuk-icu-container-rm7" style="display: none;">
+                            <div class="form-group">
+                                <label>Indikasi Masuk ICU/PICU/HCU</label>
+                                <div class="row no-gutters">
+                                    <div class="col-md-6">
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="GANGGUAN_NAFAS" id="GANGGUAN_NAFAS_rm7" value="1"><label class="form-check-label" for="GANGGUAN_NAFAS_rm7">Gangguan Pernapasan Akut</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="INFEKSIBERAT" id="INFEKSIBERAT_rm7" value="1"><label class="form-check-label" for="INFEKSIBERAT_rm7">Infeksi Berat</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="GANGGUAN_ELEKTROLIT" id="GANGGUAN_ELEKTROLIT_rm7" value="1"><label class="form-check-label" for="GANGGUAN_ELEKTROLIT_rm7">Gangguan Elektrolit</label></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="GANGGUAN_OT" id="GANGGUAN_OT_rm7" value="1"><label class="form-check-label" for="GANGGUAN_OT_rm7">Gangguan Organ Vital</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" name="PASCAOPERASI" id="PASCAOPERASI_rm7" value="1"><label class="form-check-label" for="PASCAOPERASI_rm7">Pasca Operasi Besar</label></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group mt-2">
                             <label for="diagnosa-rm7">Diagnosa Sementara</label>
                             <textarea class="form-control" id="diagnosa-rm7" name="DIAGNOSA_SEMENTARA" rows="2"></textarea>
                         </div>
@@ -118,10 +137,10 @@
 
             <!-- VITAL SIGNS -->
             <div class="card-deck mb-4">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h6 class="card-title mb-0">Vital Sign (Saat Transfer)</h6>
-                        <small class="d-block text-muted">Diisi oleh petugas yang mengirim</small>
+                <div class="card card-sender">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0"><i class="fas fa-paper-plane mr-2"></i>Vital Sign (Saat Transfer)</h6>
+                        <small class="d-block text-muted font-weight-bold">Diisi oleh petugas yang mengirim</small>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -136,8 +155,8 @@
                 </div>
                 <div class="card card-receiver">
                     <div class="card-header bg-light">
-                        <h6 class="card-title mb-0">Vital Sign (Saat Diterima)</h6>
-                        <small class="d-block text-muted">Diisi oleh petugas yang menerima</small>
+                        <h6 class="card-title mb-0"><i class="fas fa-hand-holding-medical mr-2"></i>Vital Sign (Saat Diterima)</h6>
+                        <small class="d-block text-muted font-weight-bold">Diisi oleh petugas penerima</small>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -243,15 +262,19 @@
 
             <!-- WAKTU & PETUGAS -->
             <div class="card-deck mb-4">
-                <div class="card">
-                    <div class="card-header bg-light"><h6 class="card-title mb-0">Waktu & Petugas Penyerahan</h6></div>
+                <div class="card card-sender">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0"><i class="fas fa-user-nurse mr-2"></i>Petugas Penyerahan</h6>
+                    </div>
                     <div class="card-body">
                         <div class="form-group"><label>Tanggal & Jam Diantar</label><div class="input-group"><input type="date" class="form-control" name="TANGGAL_DIANTAR"><input type="time" class="form-control" name="JAM_DIANTAR"></div></div>
                         <div class="form-group"><label>Perawat/Bidan Yang Menyerahkan</label><input type="text" class="form-control bg-light" id="perawat-menyerahkan-rm7" name="PERAWAT_MENYERAHKAN" readonly></div>
                     </div>
                 </div>
                 <div class="card card-receiver">
-                    <div class="card-header bg-light"><h6 class="card-title mb-0">Waktu & Petugas Penerima</h6></div>
+                    <div class="card-header">
+                        <h6 class="card-title mb-0"><i class="fas fa-user-check mr-2"></i>Petugas Penerima</h6>
+                    </div>
                     <div class="card-body">
                         <div class="form-group"><label>Tanggal & Jam Diterima</label><div class="input-group"><input type="date" class="form-control" name="TANGGAL_DITERIMA"><input type="time" class="form-control" name="JAM_DITERIMA"></div></div>
                         <div class="form-group"><label>Perawat/Bidan yang Menerima</label><input type="text" class="form-control bg-light" id="perawat-menerima-rm7" name="PERAWAT_MENERIMA" readonly></div>
@@ -337,11 +360,21 @@
 </div>
 
 <style>
-.card-receiver { border: 2px solid #ffc107; }
-.card-receiver .card-header { background-color: #fff3cd !important; }
 .history-row:hover {
     background-color: #e9ecef !important;
     cursor: pointer;
+}
+/* Style untuk sisi Pengirim */
+.card-sender {
+    border: 2px solid #007bff; /* Biru */
+}
+.card-sender .card-header {
+    background-color: #cce5ff !important; /* Biru muda */
+}
+/* Style untuk sisi Penerima */
+.card-receiver { border: 2px solid #28a745; /* Hijau */ }
+.card-receiver .card-header {
+    background-color: #d4edda !important; /* Hijau muda */
 }
 </style>
 
@@ -359,6 +392,17 @@ $(document).ready(function() {
         theme: 'bootstrap4'
     });
 
+        $('#pindah-ruangan-rm7').on('change', function() {
+            const selectedText = $(this).find('option:selected').text().toUpperCase();
+            const icuContainer = $('#indikasi-masuk-icu-container-rm7');
+            if (selectedText.includes('ICU') || selectedText.includes('PICU') || selectedText.includes('HCU')) {
+                icuContainer.slideDown();
+            } else {
+                icuContainer.slideUp();
+                icuContainer.find('input[type="checkbox"]').prop('checked', false);
+            }
+        });
+
     let currentModalData = null;
 
 
@@ -370,9 +414,11 @@ $(document).ready(function() {
         dpjp: $('#rm7-dpjp').val(),
         diagnosa: $('#rm7-diagnosa').val(),
         urls: {
+            ruangTujuanOtomatis: $('#rm7-ruang-tujuan-otomatis').val(),
             history: $('#rm7-url-history').val(),
             detail: $('#rm7-url-detail').val(),
             store: $('#rm7-url-store').val(),
+            destroy: $('#rm7-url-destroy').val(),
         }
     };
 
@@ -440,7 +486,10 @@ $(document).ready(function() {
         $('#dpjp-rm7').val(config.dpjp).trigger('change');
         // Reset select2 untuk ruangan
         $('#asal-ruangan-rm7').val(null).trigger('change');
-        $('#pindah-ruangan-rm7').val(null).trigger('change');
+        // Atur ruangan tujuan otomatis jika ada
+        const ruangTujuanOtomatis = $('#rm7-ruang-tujuan-otomatis').val();
+        $('#pindah-ruangan-rm7').val(ruangTujuanOtomatis).trigger('change');
+
 
 
         $('#perawat-menyerahkan-rm7, #perawat-menerima-rm7').prop('readonly', true);
@@ -459,25 +508,40 @@ $(document).ready(function() {
                 response.data.forEach(item => {
                     const isPending = !item.PERAWAT_MENERIMA || item.PERAWAT_MENERIMA.trim() === '' || !item.TGLJAM_TERIMA;
                     if (isPending) hasPending = true;
+
+                    const perawatMenyerahkan = (item.PERAWAT_MENYERAHKAN || '').trim();
+                    const perawatMenerima = (item.PERAWAT_MENERIMA || '').trim();
+
+                    // Cek apakah user saat ini berhak menghapus
+                    const canDelete = config.currentUser === perawatMenyerahkan || config.currentUser === perawatMenerima;
+
                     const statusBadge = isPending ? '<span class="badge badge-warning">Menunggu</span>' : '<span class="badge badge-success">Selesai</span>';
-                    const rowClass = isPending ? 'table-warning' : '';
                     const tglEntry = item.TGLJAM_ENTRY ? moment(item.TGLJAM_ENTRY).format('DD/MM/YY HH:mm') : '-';
 
+                    // Tombol hapus hanya akan dirender jika `canDelete` bernilai true
+                    const deleteButton = canDelete ? `
+                        <button type="button" class="btn btn-xs btn-danger btn-delete-rm7" title="Hapus Data Transfer">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : '';
+
                     const row = `
-                        <tr class="history-row ${rowClass}" data-notransfer="${item.NOTRANSFER}" title="Klik untuk melihat detail dan mengedit">
+                        <tr class="history-row" data-notransfer="${item.NOTRANSFER}">
                             <td class="text-center align-middle"><strong>#${item.NOTRANSFER}</strong></td>
                             <td class="align-middle">
-                                <div><strong>${item.ASAL_PASIEN_RUANGAN_TEXT || '-'}</strong> &rarr; <strong>${item.PINDAH_KE_RUANG_TEXT || '-'}</strong></div>
+                                <a href="#" class="font-weight-bold text-dark view-detail-link">${item.ASAL_PASIEN_RUANGAN_TEXT || '-'} &rarr; ${item.PINDAH_KE_RUANG_TEXT || '-'}</a>
                                 <div class="d-block d-md-none mt-1">
                                     <div class="text-muted small">
-                                        <div><i class="fas fa-user-nurse text-primary"></i> <strong>Oleh:</strong> ${item.PERAWAT_MENYERAHKAN || '-'} (${tglEntry})</div>
-                                        <div><i class="fas fa-user-check text-success"></i> <strong>Terima:</strong> ${isPending ? '<em>Belum diterima</em>' : `${item.PERAWAT_MENERIMA} (${moment(item.TGLJAM_TERIMA).format('DD/MM/YY HH:mm')})`}</div>
+                                        <div><i class="fas fa-user-nurse text-primary"></i> <strong>Oleh:</strong> ${perawatMenyerahkan || '-'} (${tglEntry})</div>
+                                        <div><i class="fas fa-user-check text-success"></i> <strong>Terima:</strong> ${isPending ? '<em>Belum diterima</em>' : `${perawatMenerima} (${moment(item.TGLJAM_TERIMA).format('DD/MM/YY HH:mm')})`}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="align-middle d-none d-md-table-cell">${item.PERAWAT_MENYERAHKAN || '-'}<br><small class="text-muted">${tglEntry}</small></td>
-                            <td class="align-middle d-none d-md-table-cell">${isPending ? '<em class="text-muted">---</em>' : `${item.PERAWAT_MENERIMA}<br><small class="text-muted">${moment(item.TGLJAM_TERIMA).format('DD/MM/YY HH:mm')}</small>`}</td>
-                            <td class="text-center align-middle">${statusBadge}</td>
+                            <td class="align-middle d-none d-md-table-cell">${perawatMenyerahkan || '-'}<br><small class="text-muted">${tglEntry}</small></td>
+                            <td class="align-middle d-none d-md-table-cell">${isPending ? '<em class="text-muted">---</em>' : `${perawatMenerima}<br><small class="text-muted">${moment(item.TGLJAM_TERIMA).format('DD/MM/YY HH:mm')}</small>`}</td>
+                            <td class="text-center align-middle">
+                                ${statusBadge} ${deleteButton}
+                            </td>
                         </tr>`;
                     body.append(row);
                 });
@@ -733,10 +797,14 @@ $(document).ready(function() {
     $('#btn-reset-rm7').click(resetForm);
 
     $('#history-body-rm7').on('click', 'tr', function(e) {
-        // Mencegah trigger ganda jika tombol di dalam baris diklik
-        if ($(e.target).is('button, i, a')) return;
+        // Hanya trigger jika yang diklik bukan tombol atau link di dalam baris
+        if ($(e.target).is('button, i, a') && !$(e.target).hasClass('view-detail-link')) {
+            return;
+        }
+        e.preventDefault();
 
         const noTransfer = $(this).closest('tr').data('notransfer');
+        // Ganti loadDetail menjadi showDetailModal agar lebih konsisten
         showDetailModal(noTransfer);
     });
 
@@ -813,6 +881,43 @@ $(document).ready(function() {
             },
             complete: function() {
                 submitButton.prop('disabled', false).html(originalButtonHtml);
+            }
+        });
+    });
+
+    // Event listener untuk tombol hapus
+    $('#history-body-rm7').on('click', '.btn-delete-rm7', function(e) {
+        e.stopPropagation(); // Mencegah trigger klik pada baris
+        const noTransfer = $(this).closest('tr').data('notransfer');
+
+        Swal.fire({
+            title: 'Yakin ingin menghapus?',
+            text: `Anda akan menghapus data transfer #${noTransfer}. Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: config.urls.destroy,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        noPendaftaran: config.noPendaftaran,
+                        noTransfer: noTransfer
+                    },
+                    success: function(response) {
+                        Swal.fire('Terhapus!', response.message, 'success').then(() => {
+                            loadHistory(); // Muat ulang riwayat setelah berhasil hapus
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Gagal!', xhr.responseJSON?.message || 'Gagal menghapus data.', 'error');
+                    }
+                });
             }
         });
     });

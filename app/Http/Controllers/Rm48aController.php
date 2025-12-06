@@ -70,6 +70,28 @@ class Rm48aController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan.'], 404);
             }
 
+            // Helper function to convert image data to base64
+            $toBase64 = function ($imageData) {
+                if (empty($imageData)) {
+                    return null;
+                }
+                $binaryData = $imageData;
+
+                // Driver SQL Server sering mengembalikan data 'image' sebagai hex string
+                if (strpos($imageData, '0x') === 0) {
+                    $binaryData = hex2bin(substr($imageData, 2));
+                } elseif (is_string($imageData) && ctype_xdigit($imageData)) {
+                    // Fallback jika driver mengembalikan hex string tanpa '0x'
+                    // Ini penting untuk kompatibilitas dengan SQL Server 2000
+                    $binaryData = hex2bin($imageData);
+                }
+
+                return 'data:image/jpeg;base64,' . base64_encode($binaryData);
+            };
+
+            $detail->SAKSI_1_BASE64 = $toBase64($detail->SAKSI_1);
+            $detail->TTD_YANGMENYATAKAN_BASE64 = $toBase64($detail->TTD_YANGMENYATAKAN);
+
             return response()->json(['status' => 'success', 'data' => $detail]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);

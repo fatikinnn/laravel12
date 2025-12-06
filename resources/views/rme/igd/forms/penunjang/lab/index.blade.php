@@ -122,9 +122,48 @@
                 @endif
             </div>
             <div class="card-footer text-right">
+                <a href="{{ route('rme.igd.penunjang.lab.pdf', ['NoPendaftaran' => $patientInfo['NoPendaftaran'], 'NoKwitansi' => $patientInfo['NoKwitansi']]) }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-file-pdf mr-1"></i> Export PDF Ini
+                </a>
                 <small class="text-muted">Pemeriksa: <strong>{{ $patientInfo['Pemeriksa'] ?? '-' }}</strong></small>
             </div>
         </div>
     @endforeach
-@endif
 
+    {{-- Tombol Export Semua PDF diletakkan di luar loop --}}
+    <div id="export-pdf-button-template" class="d-none"> {{-- Changed ID to indicate it's a template --}}
+        @php
+            $firstPatientInfo = $allKwitansiData[0]['patientInfo'] ?? null;
+        @endphp
+        @if (count($allKwitansiData) > 1)
+            {{-- Added a unique class to the button for easier targeting and removal --}}
+            <a href="{{ route('rme.igd.penunjang.lab.pdf.all', ['NoPendaftaran' => $firstPatientInfo['NoPendaftaran']]) }}"
+               target="_blank"
+               class="btn btn-danger export-lab-pdf-button" {{-- Added class here --}}
+               id="export-lab-pdf-btn" {{-- Kept ID for specific targeting if needed --}}
+            >
+                <i class="fas fa-file-pdf mr-1"></i> Export Semua ke PDF
+            </a>
+        @endif
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const templateContainer = $('#export-pdf-button-template');
+            const buttonHtml = templateContainer.html();
+
+            // Only proceed if there's a button to add (i.e., if count($allKwitansiData) > 1)
+            if (buttonHtml.trim() !== '') {
+                // Find the closest modal footer relative to the current script's parent
+                // This assumes the script is loaded within the modal's content
+                const modalFooter = templateContainer.closest('.modal-content').find('.modal-footer');
+
+                // IMPORTANT: Remove any existing instances of the button before adding a new one
+                modalFooter.find('.export-lab-pdf-button').remove();
+
+                // Prepend the button HTML to the modal footer
+                modalFooter.prepend(buttonHtml);
+            }
+        });
+    </script>
+@endif

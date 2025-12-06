@@ -145,6 +145,7 @@ class RmeIgdController extends Controller
             'rm24d' => ['RM24D'],
             'rm7' => ['RM7'],
             'rm57' => ['RM57'],
+            'rm80' => ['rm80'],
             'fotopenunjang' => ['HASILUSG', 'HASILCTG', 'HASILECHO'], // Contoh untuk upload foto
             // Tambahkan form lain di sini...
         ];
