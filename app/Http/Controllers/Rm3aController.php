@@ -15,6 +15,9 @@ class Rm3aController extends Controller
      */
     public function load(Request $request)
     {
+        // Tambahkan parameter untuk mode readonly
+        $readonly = $request->has('readonly') && $request->input('readonly') == 'true';
+
         $validator = Validator::make($request->all(), [
             'NoPendaftaran' => 'required|string',
             'NoRM' => 'required|string',
@@ -44,6 +47,7 @@ class Rm3aController extends Controller
             'norm' => $norm,
             'rm3a' => $rm3a, // Kirim data rm3a (bisa null jika belum ada)
             'user' => $user,
+            'readonly' => $readonly, // Kirim flag readonly ke view
         ];
 
         // Kembalikan view parsial

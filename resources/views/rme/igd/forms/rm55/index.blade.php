@@ -44,8 +44,8 @@
                 <hr>
                 <div class="row">
                     <div class="col-md-6 form-group">
-                        <label for="rm55_nomeperiksa">DPJP</label>
-                        <select class="form-control" id="rm55_nomeperiksa" name="NOMEPERIKSA" style="width: 100%;">
+                        <label for="rm55_nopemeriksa">DPJP</label>
+                        <select class="form-control" id="rm55_nopemeriksa" name="NOPEMERIKSA" style="width: 100%;">
                             <option value="">-- Pilih DPJP --</option>
                             @foreach($dokterList as $dokter)
                                 <option value="{{ trim($dokter->NOPEMERIKSA) }}" data-nama="{{ trim($dokter->NAMAPEMERIKSA) }}"
@@ -61,7 +61,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 form-group">
-                        <label for="rm55_nm_penerima">Nama Penerima Surat</label>
+                        <label for="rm55_nm_penerima">Ibu/Keluarga</label>
                         <input type="text" class="form-control" id="rm55_nm_penerima" name="NM_PENERIMA" placeholder="Masukkan nama penerima" value="{{ $data->NM_PENERIMA ?? '' }}">
                     </div>
                 </div>
@@ -92,7 +92,7 @@
         const noPendaftaran = $('#rm55_nopendaftaran').val();
 
         // Inisialisasi Select2 untuk DPJP
-        $('#rm55_nomeperiksa').select2({
+        $('#rm55_nopemeriksa').select2({
             placeholder: 'Pilih DPJP',
         }).on('select2:select', function (e) {
             // Simpan nama dokter ke input tersembunyi saat dipilih
@@ -101,8 +101,8 @@
         });
 
         // Trigger event select untuk mengisi hidden input saat form pertama kali dimuat
-        if ($('#rm55_nomeperiksa').val()) {
-            $('#rm55_nomeperiksa').trigger('select2:select');
+        if ($('#rm55_nopemeriksa').val()) {
+            $('#rm55_nopemeriksa').trigger('select2:select');
         }
 
         function initSignaturePadRm55() {
@@ -147,7 +147,7 @@
 
         $('#btn-reset-rm55').on('click', function() {
             $('#rm55Form')[0].reset();
-            $('#rm55_nomeperiksa').val(null).trigger('change'); // Reset select2
+            $('#rm55_nopemeriksa').val(null).trigger('change'); // Reset select2
             $('#rm55_dpjp_text').val('');
             $('#rm55_petugas_rnifas').val("{{ $user['username'] ?? '' }}");
             if (signaturePadRm55) signaturePadRm55.clear();

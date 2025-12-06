@@ -32,7 +32,7 @@
 
         <div class="col-md-6">
             <label for="namadokter" class="form-label">Nama Dokter:</label>
-            <select id="namadokter" name="namadokter" class="form-select form-control">
+            <select id="namadokter" name="namadokter" class="form-select form-control select2">
                 <option value="">-- Pilih Dokter --</option>
                 @foreach ($dokterList as $dokter)
                     <option value="{{ trim($dokter->NAMAPEMERIKSA) }}"
@@ -92,11 +92,11 @@
 
         <div class="col-md-6">
             <label for="spesialisasi" class="form-label">DPJP:</label>
-            <select id="spesialisasi" name="spesialisasi" class="form-select form-control">
+            <select id="spesialisasi" name="spesialisasi" class="form-select form-control select2">
                 <option value="">-- Pilih Dokter --</option>
                 @foreach ($dokterList as $dokter)
                     <option value="{{ trim($dokter->NAMAPEMERIKSA) }}"
-                            @if(old('spesialisasi', trim($row['SPESIALISASI'] ?? '')) == trim($dokter->NAMAPEMERIKSA)) selected @endif>
+                            @if(old('spesialisasi', trim($row['SPESIALISASI'] ?? $dpjp)) == trim($dokter->NAMAPEMERIKSA)) selected @endif>
                         {{ trim($dokter->NAMAPEMERIKSA) }}
                     </option>
                 @endforeach
@@ -133,6 +133,12 @@
 <script>
     // Menggunakan document.ready untuk memastikan semua elemen DOM sudah dimuat
     $(document).ready(function() {
+        // Inisialisasi Select2 pada elemen yang relevan
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+
         // Panggil fungsi ini saat halaman dimuat untuk mengisi data jika dokter sudah terpilih
         isiDataDokter();
 
@@ -166,7 +172,13 @@
                 },
                 success: function(response) {
                     if (response.status === 'success') {
-                        Swal.fire('Berhasil!', response.message, 'success');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message,
+                            showConfirmButton: false,
+                            timer: 1500 // Alert akan hilang setelah 1.5 detik
+                        });
                         // Pemicu event 'change' pada dropdown utama untuk memuat ulang form
                         $('#form-selector').trigger('change');
                     } else {
@@ -215,7 +227,12 @@
         const jabatanList = @json($jabatanList); // Mengubah array PHP ke objek JS
         const namaJabatan = jabatanList[kdJabatan] || '';
 
-        document.getElementById('ket_spes').value = namaJabatan;
+        // Jika KDJABATAN adalah '40' (dr. Umum), kosongkan keterangan spesialis
+        if (kdJabatan === '40') {
+            document.getElementById('ket_spes').value = '';
+        } else {
+            document.getElementById('ket_spes').value = namaJabatan;
+        }
 
         if (namaJabatan && namaJabatan.toLowerCase().includes('spesialis')) {
             document.getElementById('jab_spes').checked = true;

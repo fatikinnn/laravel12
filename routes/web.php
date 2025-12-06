@@ -24,8 +24,11 @@ use App\Http\Controllers\Rm6aDewasaController;
 use App\Http\Controllers\Rm1cController;
 use App\Http\Controllers\Rm3dController;
 use App\Http\Controllers\RmeIgdController;
+use App\Http\Controllers\McuController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MonitoringLukaReedaController;
 use App\Http\Controllers\ResepKronisController;
+use App\Http\Controllers\VisiteDokter\VisiteDokterController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -127,6 +130,7 @@ Route::middleware(['auth.custom'])->group(function () {
                 Route::get('/history', [App\Http\Controllers\Rm8aController::class, 'history'])->name('history');
                 Route::get('/detail', [App\Http\Controllers\Rm8aController::class, 'detail'])->name('detail');
                 Route::post('/store', [App\Http\Controllers\Rm8aController::class, 'store'])->name('store');
+                Route::post('/destroy', [App\Http\Controllers\Rm8aController::class, 'destroy'])->name('destroy');
                 Route::get('/image/{noPendaftaran}/{counter}', [App\Http\Controllers\Rm8aController::class, 'showImage'])->name('showImage')->where('noPendaftaran', '.*');
             });
 
@@ -173,6 +177,7 @@ Route::middleware(['auth.custom'])->group(function () {
                 Route::get('/history', [App\Http\Controllers\Rm7Controller::class, 'history'])->name('history');
                 Route::get('/detail', [App\Http\Controllers\Rm7Controller::class, 'detail'])->name('detail');
                 Route::post('/store', [App\Http\Controllers\Rm7Controller::class, 'store'])->name('store');
+                Route::post('/destroy', [App\Http\Controllers\Rm7Controller::class, 'destroy'])->name('destroy');
             });
 
             Route::prefix('moews')->name('moews.')->group(function () {
@@ -241,6 +246,39 @@ Route::middleware(['auth.custom'])->group(function () {
                 Route::post('/store', [App\Http\Controllers\Rm55Controller::class, 'store'])->name('store');
                 Route::get('/image/{noPendaftaran}', [App\Http\Controllers\Rm55Controller::class, 'showImage'])->name('showImage')->where('noPendaftaran', '.*');
             });
+
+            // Routes untuk Form RM80 (Berita Acara Serah Terima Bayi)
+            Route::prefix('rm80')->name('rm80.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\Rm80Controller::class, 'load'])->name('load');
+                Route::post('/store', [App\Http\Controllers\Rm80Controller::class, 'store'])->name('store');
+                Route::get('/image/{noPendaftaran}/{field}', [App\Http\Controllers\Rm80Controller::class, 'showImage'])->name('showImage')->where('noPendaftaran', '.*');
+            });
+
+            // Routes untuk Form Permintaan Lab
+            Route::prefix('permintaan-penunjang')->name('permintaan-penunjang.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\PermintaanPenunjangController::class, 'load'])->name('load');
+                Route::post('/store', [App\Http\Controllers\PermintaanPenunjangController::class, 'store'])->name('store');
+                Route::get('/get-lab-services', [App\Http\Controllers\PermintaanPenunjangController::class, 'getLabServices'])->name('getLabServices');
+            });
+
+            // Routes untuk Form Penilaian Luka REEDA
+            Route::prefix('lukareeda')->name('lukareeda.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\LukaReedaController::class, 'load'])->name('load');
+                Route::post('/store', [App\Http\Controllers\LukaReedaController::class, 'store'])->name('store');
+            });
+
+            // Routes untuk Form Skrining Sepsis
+            Route::prefix('skriningsepsis')->name('skriningsepsis.')->group(function () {
+                Route::get('/load', [App\Http\Controllers\SkriningSepsisController::class, 'load'])->name('load');
+                Route::post('/store', [App\Http\Controllers\SkriningSepsisController::class, 'store'])->name('store');
+            });
+
+            // Routes untuk Form MCU
+            Route::prefix('mcu')->name('mcu.')->group(function () {
+                Route::get('/load', [McuController::class, 'load'])->name('load');
+                Route::post('/store', [McuController::class, 'store'])->name('store');
+            });
+
         });
 
         // Routes for RM16B - Monitoring Infus
@@ -281,7 +319,11 @@ Route::middleware(['auth.custom'])->group(function () {
         // Penunjang (Lab & Rad) Routes - Dipindahkan ke sini
         Route::prefix('penunjang')->name('penunjang.')->group(function () {
             Route::get('/lab', [PenunjangController::class, 'showLabResults'])->name('lab');
+            Route::get('/lab/pdf', [PenunjangController::class, 'exportLabPdf'])->name('lab.pdf');
+            Route::get('/lab/pdf/all', [PenunjangController::class, 'exportAllLabPdf'])->name('lab.pdf.all');
             Route::get('/rad', [PenunjangController::class, 'showRadResults'])->name('rad');
+            Route::get('/obat', [PenunjangController::class, 'showObatResults'])->name('obat');
+            Route::get('/rad/image', [PenunjangController::class, 'showRadImage'])->name('rad.image');
         });
 
     });
@@ -307,4 +349,25 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::post('/resep-kronis/clear', [ResepKronisController::class, 'clear'])->name('resep-kronis.clear');
         Route::get('/resep-kronis/export', [ResepKronisController::class, 'export'])->name('resep-kronis.export');
     });
+    
+    // Rute untuk Visite Dokter, dibatasi untuk role tertentu
+    Route::middleware('role:DOKTER,DOKTER UMUM,PERAWAT,PELAYANAN,admin,BIDAN')->group(function () {
+        Route::prefix('visite-dokter')->name('visite-dokter.')->group(function () {
+            Route::get('/', [VisiteDokterController::class, 'index'])->name('index');
+            Route::get('/search-patients', [VisiteDokterController::class, 'searchPatients'])->name('searchPatients');
+            Route::get('/get-patient-details', [VisiteDokterController::class, 'getPatientDetails'])->name('getPatientDetails');
+        });
+    });
+
+    // Rute untuk Monitoring
+    Route::prefix('monitoring')->name('monitoring.')->group(function () {
+        Route::get('/luka-reeda', [MonitoringLukaReedaController::class, 'index'])->name('lukareeda.index');
+        
+        // Rute untuk Monitoring MCU (hanya admin)
+        Route::middleware('role:admin')->group(function () {
+            Route::get('/mcu', [McuController::class, 'monitoringIndex'])->name('mcu.index');
+            Route::get('/mcu/data', [McuController::class, 'data'])->name('mcu.data');
+        });
+    });
+
 });

@@ -2,6 +2,7 @@
     {{-- Hidden Inputs for AJAX URLs --}}
     <input type="hidden" id="rm8a_history_url" value="{{ route('rme.igd.form.rm8a.history') }}">
     <input type="hidden" id="rm8a_detail_url" value="{{ route('rme.igd.form.rm8a.detail') }}">
+    <input type="hidden" id="rm8a_destroy_url" value="{{ route('rme.igd.form.rm8a.destroy') }}">
 
     {{-- Riwayat Pemeriksaan --}}
     <div class="mb-4">
@@ -13,10 +14,11 @@
                         <th>Tanggal & Jam</th>
                         <th>Materi Edukasi</th>
                         <th>Petugas</th>
+                        <th style="width: 80px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="rm8aHistoryBody">
-                    <tr><td colspan="3" class="text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat riwayat...</td></tr>
+                    <tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat riwayat...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -70,6 +72,28 @@
             <button type="button" class="btn btn-outline-secondary" id="btn-reset-rm8a"><i class="fas fa-sync-alt mr-1"></i> Batal / Baru</button>
         </div>
     </form>
+</div>
+
+{{-- Modal untuk Detail Riwayat --}}
+<div class="modal fade" id="rm8aDetailModal" tabindex="-1" role="dialog" aria-labelledby="rm8aDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rm8aDetailModalLabel">Detail Riwayat Edukasi</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="rm8aDetailContent">
+                    <p class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat data...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -184,7 +208,13 @@
         $('#rm8a_materi_edukasi').val('Edukasi Kondisi Pasien');
         autoSelectJabatan(); // Panggil fungsi untuk set jabatan otomatis
         $('#rm8a_evaluasi_respon').val('Mengerti');
-        $('#rm8a_isi_pend_kesehatan').val("Edukasi pemasangan infus kepada pasien\nEdukasi tentang pelayanan rawat inap di rumah sakit\nEdukasi mengenai antrian pasien di IGD berdasarkan tingkat kegawatdaruratanya\nEdukasi mengenai cara pemberian terapi untuk pasien rawat inap\nEdukasi pasien bahwa membutuhkan perawatan lebih lanjut di rumah sakit");
+
+        // Hanya isi teks default jika tidak ada riwayat (data pertama)
+        const historyRowCount = $('#rm8aHistoryBody tr').length;
+        const isFirstEntry = historyRowCount === 1 && $('#rm8aHistoryBody tr:first').find('td').attr('colspan') === '4';
+        if (isFirstEntry) {
+            $('#rm8a_isi_pend_kesehatan').val("Edukasi pemasangan infus kepada pasien\nEdukasi tentang pelayanan rawat inap di rumah sakit\nEdukasi mengenai antrian pasien di IGD berdasarkan tingkat kegawatdaruratanya\nEdukasi mengenai cara pemberian terapi untuk pasien rawat inap\nEdukasi pasien bahwa membutuhkan perawatan lebih lanjut di rumah sakit");
+        }
 
         if (signaturePad) signaturePad.clear();
         $('#hiddenTTD').val('');
@@ -207,22 +237,27 @@
                     response.data.forEach(item => {
                         const tgl = item.TGL ? new Date(item.TGL).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
                         const jam = item.JAM ? item.JAM.substring(0, 5) : '-';
-                        html += `<tr data-counter="${item.COUNTER}" class="editable-row" title="Klik untuk edit">
+                        html += `<tr data-counter="${item.COUNTER}" class="editable-row" style="cursor: pointer;" title="Klik baris ini untuk edit">
                                     <td>${tgl} ${jam}</td>
                                     <td>${item.MATERI_EDUKASI || '-'}</td>
                                     <td>${item.NAMA_PEMBERI_EDUKASI || '-'}</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-xs btn-info btn-view-rm8a" title="Lihat Detail"><i class="fas fa-eye"></i></button>
+                                        <button type="button" class="btn btn-xs btn-danger btn-delete-rm8a" title="Hapus Data"><i class="fas fa-trash"></i></button>
+                                    </td>
                                  </tr>`;
                     });
                 } else {
-                    html = '<tr><td colspan="3" class="text-center">Tidak ada riwayat ditemukan.</td></tr>';
+                    html = '<tr><td colspan="4" class="text-center">Tidak ada riwayat ditemukan.</td></tr>';
                 }
             } else {
-                html = '<tr><td colspan="3" class="text-center text-danger">Gagal memuat riwayat.</td></tr>';
+                html = '<tr><td colspan="4" class="text-center text-danger">Gagal memuat riwayat.</td></tr>';
             }
             $('#rm8aHistoryBody').html(html);
+            // Reset form setelah memuat riwayat agar selalu dalam mode input baru
             resetRm8aForm();
         }).fail(function() {
-            $('#rm8aHistoryBody').html('<tr><td colspan="3" class="text-center text-danger">Gagal memuat riwayat.</td></tr>');
+            $('#rm8aHistoryBody').html('<tr><td colspan="4" class="text-center text-danger">Gagal memuat riwayat.</td></tr>');
             resetRm8aForm();
         });
     }
@@ -231,9 +266,15 @@
         const url = $('#rm8a_detail_url').val();
         const noPendaftaran = $('#rm8a_nopendaftaran').val();
 
+        // Tampilkan loading SweetAlert
+        Swal.fire({
+            title: 'Memuat Detail Data...',
+            text: 'Mohon tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
         $.get(url, { noPendaftaran: noPendaftaran, counter: counter }, function(response) {
-            // Pindahkan reset ke paling atas untuk memastikan state bersih
-            resetRm8aForm();
 
             if (response.status === 'success') {
                 const data = response.data;
@@ -257,18 +298,14 @@
                     initSignaturePad('canvasTTD', 'hiddenTTD');
                 }
 
-                if (data.TTD_PENERIMA) {
-                    const imageUrl = `{{ route('rme.igd.form.rm8a.showImage', [':noPendaftaran', ':counter']) }}`
-                                        .replace(':noPendaftaran', noPendaftaran)
-                                        .replace(':counter', counter) + `?v=${new Date().getTime()}`;
-
-                    // Muat gambar ke signature pad
-                    signaturePad.fromDataURL(imageUrl, {
+                // Gunakan data Base64 yang sudah ada di response, ini jauh lebih cepat
+                if (data.TTD_PENERIMA_BASE64) {
+                    signaturePad.fromDataURL(data.TTD_PENERIMA_BASE64, {
                         ratio: 1,
                         width: signaturePad.canvas.offsetWidth,
                         height: signaturePad.canvas.offsetHeight
                     }).catch(() => {
-                        console.error("Gagal memuat gambar tanda tangan dari URL:", imageUrl);
+                        console.error("Gagal memuat gambar tanda tangan dari data Base64.");
                     });
                 }
 
@@ -276,13 +313,62 @@
                 $('#btn-save-rm8a').html('<i class="fas fa-pencil-alt mr-1"></i> Update');
                 $('#rm8aHistoryTable tbody tr').removeClass('table-info');
                 $(`#rm8aHistoryTable tbody tr[data-counter="${counter}"]`).addClass('table-info');
-
+                
+                // Lakukan scroll SETELAH semua data berhasil dimuat
+                $('html, body').animate({ scrollTop: $('#rm8aForm').offset().top - 100 }, 500);
+                Swal.close(); // Tutup loading alert
                 Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Mode Edit Aktif', showConfirmButton: false, timer: 2000 });
             } else {
-                Swal.fire('Error', 'Gagal memuat detail data.', 'error');
+                Swal.fire('Error', response.message || 'Gagal memuat detail data.', 'error');
             }
         }).fail(function() {
             Swal.fire('Error', 'Gagal memuat detail data.', 'error');
+        });
+    }
+
+    function showDetailInModal(counter) {
+        const url = $('#rm8a_detail_url').val();
+        const noPendaftaran = $('#rm8a_nopendaftaran').val();
+        const modalContent = $('#rm8aDetailContent');
+        const imageUrl = "{{ route('rme.igd.form.rm8a.showImage', ['noPendaftaran' => ':noPendaftaran', 'counter' => ':counter']) }}";
+
+        modalContent.html('<p class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat data...</p>');
+        $('#rm8aDetailModal').modal('show');
+
+        $.get(url, { noPendaftaran: noPendaftaran, counter: counter }, function(response) {
+            if (response.status === 'success') {
+                const data = response.data;
+                const tgl = data.TGL ? new Date(data.TGL).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
+                const jam = data.JAM ? data.JAM.substring(0, 5) : '-';
+                const finalImageUrl = imageUrl.replace(':noPendaftaran', encodeURIComponent(noPendaftaran)).replace(':counter', counter);
+
+                let detailHtml = `
+                    <div class="row">
+                        <div class="col-md-6"><p><strong>Tanggal & Jam:</strong><br>${data.HARI}, ${tgl} pukul ${jam}</p></div>
+                        <div class="col-md-6"><p><strong>Pemberi Edukasi:</strong><br>${data.NAMA_PEMBERI_EDUKASI || '-'} (${data.PEMBERI_EDUKASI || '-'})</p></div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6"><p><strong>Penerima Edukasi:</strong><br>${data.PENERIMA_EDUKASI || '-'}</p></div>
+                        <div class="col-md-6"><p><strong>Nama Penerima:</strong><br>${data.NAMA_PENERIMA_EDUKASI || '-'}</p></div>
+                    </div>
+                    <hr>
+                    <p><strong>Materi Edukasi:</strong> ${data.MATERI_EDUKASI || '-'}</p>
+                    <p><strong>Metode:</strong> ${data.METODE || '-'}</p>
+                    <p><strong>Isi Pendidikan Kesehatan:</strong><br><pre style="white-space: pre-wrap; font-family: inherit; font-size: inherit;">${data.ISI_PEND_KESEHATAN || '-'}</pre></p>
+                    <p><strong>Evaluasi Respon:</strong> ${data.EVALUASI_RESPON || '-'}</p>
+                    <hr>
+                    <div class="text-center">
+                        <p class="mb-1"><strong>Tanda Tangan Penerima:</strong></p>
+                        ${data.TTD_PENERIMA_BASE64 ? `<img src="${data.TTD_PENERIMA_BASE64}" alt="Tanda Tangan" style="max-width: 250px; border: 1px solid #ddd;"/>` : '<p class="text-muted">Tidak ada tanda tangan.</p>'}
+                    </div>
+                `;
+                modalContent.html(detailHtml);
+            } else {
+                modalContent.html('<p class="text-center text-danger">Gagal memuat detail data.</p>');
+            }
+        }).fail(function() {
+            modalContent.html('<p class="text-center text-danger">Terjadi kesalahan saat mengambil data.</p>');
         });
     }
 
@@ -335,11 +421,56 @@
         });
     });
 
-    // Klik riwayat untuk edit
-    $('#rm8aHistoryBody').on('click', '.editable-row', function() {
-        const counter = $(this).data('counter');
+    // Klik baris riwayat untuk edit
+    $('#rm8aHistoryBody').on('click', '.editable-row', function(e) {
+        // Jangan jalankan jika yang diklik adalah tombol di dalam baris
+        if ($(e.target).is('button, i')) {
+            return;
+        }
+        const counter = $(this).closest('tr').data('counter');
         loadDetailForEdit(counter);
-        $('html, body').animate({ scrollTop: $('#rm8aForm').offset().top - 100 }, 500);
+    });
+
+    // Klik ikon mata untuk lihat detail di modal
+    $('#rm8aHistoryBody').on('click', '.btn-view-rm8a', function(e) {
+        e.stopPropagation(); // Hentikan event agar tidak trigger klik baris
+        const counter = $(this).closest('tr').data('counter');
+        showDetailInModal(counter);
+    });
+
+    // Klik tombol hapus
+    $('#rm8aHistoryBody').on('click', '.btn-delete-rm8a', function() {
+        const row = $(this).closest('tr');
+        const counter = row.data('counter');
+        const noPendaftaran = $('#rm8a_nopendaftaran').val();
+        const url = $('#rm8a_destroy_url').val();
+
+        Swal.fire({
+            title: 'Yakin ingin menghapus data ini?',
+            text: "Data yang sudah dihapus tidak dapat dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        noPendaftaran: noPendaftaran,
+                        counter: counter
+                    },
+                    success: function(response) {
+                        Swal.fire('Terhapus!', response.message, 'success').then(() => loadHistory());
+                    },
+                    error: function(xhr) { Swal.fire('Error!', xhr.responseJSON.message || 'Gagal menghapus data.', 'error'); }
+                });
+            }
+        });
     });
 
     // Inisialisasi

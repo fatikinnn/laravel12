@@ -203,7 +203,10 @@ class Rm3bController extends Controller
             $diagSekunder = implode(', ', array_filter([$data['DIAGNO_SEKUND_1'], $data['DIAGNO_SEKUND_2'], $data['DIAGNO_SEKUND_3'], $data['DIAGNO_SEKUND_4']]));
             $terapi = $data['TERAPI_SMNTR'] ?: '-';
 
-            $waMessage = "*Assalamualaikum dokter,*\nMohon izin lapor pasien di IGD 🙏🏻\n\n";
+            $sessionUser = session('user');
+            $namaPemeriksaLogin = $sessionUser['namapemeriksa'] ?? ''; // Ambil NAMAPEMERIKSA dari session
+
+            $waMessage = "*Assalamualaikum dokter,*\nMohon izin, saya {$namaPemeriksaLogin}, lapor pasien di IGD 🙏🏻\n\n";
             $waMessage .= "*{$namaPasien} / {$usiaPasien} / {$jaminan} / BB: {$bb} Kg*\n\n";
             $waMessage .= "*S/*\n" . ($riwayatPenyakitSekarang ?: '-') . "\n";
             if ($riwayatPenyakitDahulu) $waMessage .= "Riw. Penyakit Dahulu: {$riwayatPenyakitDahulu}\n";
@@ -241,6 +244,15 @@ class Rm3bController extends Controller
                 ['name' => 'dr. Novi Sp.M', 'phone' => '6281325428656'],
                 ['name' => 'dr. Umar Sp.P', 'phone' => '6285642000371'],
                 ['name' => 'Testing', 'phone' => '6285883381332'],
+                ['name' => 'dr. Rina Nuzulia Permatasari', 'phone' => '6285642512728'],
+                ['name' => 'dr. Dwi Utama Bangun Santoso', 'phone' => '6281393210122'],
+                ['name' => 'dr. Stanley Lovell Hanson', 'phone' => '6282225278484'],
+                ['name' => 'dr. ROSMALINDA AYU PRAMUDITA', 'phone' => '6282134188042'],
+                ['name' => 'dr. KHANSA AINUN NABILA', 'phone' => '6285848622888'],
+                ['name' => 'dr. FALAH', 'phone' => '6282250816673'],
+                ['name' => 'dr. Ermando Satria Utomo', 'phone' => '628562899921'],
+                ['name' => 'dr. ANJAR PUSPITANINGRUM', 'phone' => '6281902160660'],
+                ['name' => 'dr. Finandi Mulya Pratama', 'phone' => '6281229980949'],
             ];
 
             $message = $action === 'update' ? 'Data berhasil diperbarui.' : 'Data berhasil disimpan.';

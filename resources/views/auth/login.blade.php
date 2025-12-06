@@ -48,7 +48,9 @@
     <a href="#">
         <img src="{{ asset('img/logo.png') }}" alt="Logo RS" style="width:100px; height:auto;">
         <br>
-        <b>RSUI</b> Mutiara Bunda
+        <b>Sistem Informasi Rekam Medik</b>
+        <br>
+        RSUI Mutiara Bunda
     </a>
   </div>
   <!-- /.login-logo -->

@@ -54,7 +54,6 @@ class Rm3fController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'NOPENDAFTARAN' => 'required|string',
-            'NORM' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -240,7 +239,6 @@ class Rm3fController extends Controller
                 $message = 'Data RM3F berhasil diperbarui.';
             } else {
                 $data['NOPENDAFTARAN'] = $noPendaftaran;
-                $data['NORM'] = $request->input('NORM');
                 DB::connection('sqlsrv')->table('RM3F')->insert($data);
                 $message = 'Data RM3F berhasil disimpan.';
             }

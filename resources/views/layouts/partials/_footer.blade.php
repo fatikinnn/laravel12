@@ -8,7 +8,8 @@
     <!-- Default to the left -->
     <strong>
         Copyright &copy; {{ now()->year }}
-        <a href="#">IT {{ config('app.name', 'Laravel') }}</a>.
+        {{-- <a href="#">IT {{ config('app.name', 'Laravel') }}</a>. --}}
+        <a href="#">IT RSUI Mutiara Bunda</a>.
     </strong> All rights reserved.
 </footer>
 

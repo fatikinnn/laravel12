@@ -47,6 +47,7 @@ class Rm1cController extends Controller
             ->table('pemeriksa')
             ->where('ACTIVE', '1')
             ->where('NAMAPEMERIKSA', 'like', '%dr.%')
+            ->orderBy('NAMAPEMERIKSA', 'asc')
             ->get(['NAMAPEMERIKSA', 'KDJABATAN']);
 
         // Mengambil daftar jabatan (key = KDJABATAN, value = NAMAJABATAN)
@@ -66,6 +67,7 @@ class Rm1cController extends Controller
             'gender' => $patientDetails['Gender'],
             'dokterList' => $dokterList,
             'jabatanList' => $jabatanList,
+            'dpjp' => $patientDetails['DPJP'] ?? '',
         ];
 
         return view('rme.igd.forms.rm1c.index', $data);
@@ -78,6 +80,7 @@ class Rm1cController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'NOPENDAFTARAN' => 'required|string',
+            // NORM tidak divalidasi karena tidak disimpan ke tabel RM1c
             'namadokter' => 'required|string',
             'diag_masuk' => 'nullable|string',
             'alasan' => 'nullable|string',
@@ -90,7 +93,7 @@ class Rm1cController extends Controller
 
         $noPendaftaran = $request->input('NOPENDAFTARAN');
 
-        $data = [
+        $dataToUpdate = [
             'NAMADOKTER' => $request->input('namadokter'),
             'JAB_UMUM' => $request->input('jab_umum') ? 1 : 0,
             'JAB_SPES' => $request->input('jab_spes') ? 1 : 0,
@@ -114,23 +117,23 @@ class Rm1cController extends Controller
         ];
 
         try {
-            // Cek apakah data sudah ada
+            // Cek apakah data sudah ada untuk menentukan pesan yang akan dikirim
             $existing = DB::connection('sqlsrv')->table('RM1c')->where('NOPENDAFTARAN', $noPendaftaran)->first();
 
             if ($existing) {
                 // Update data
-                DB::connection('sqlsrv')->table('RM1c')->where('NOPENDAFTARAN', $noPendaftaran)->update($data);
+                DB::connection('sqlsrv')->table('RM1c')->where('NOPENDAFTARAN', $noPendaftaran)->update($dataToUpdate);
                 $message = 'Data RM1C berhasil diperbarui.';
+                $action = 'update';
             } else {
                 // Insert data baru
-                $data['NOPENDAFTARAN'] = $noPendaftaran;
-                $data['NORM'] = $request->input('NORM');
-                DB::connection('sqlsrv')->table('RM1c')->insert($data);
+                $dataToUpdate['NOPENDAFTARAN'] = $noPendaftaran;
+                DB::connection('sqlsrv')->table('RM1c')->insert($dataToUpdate);
                 $message = 'Data RM1C berhasil disimpan.';
+                $action = 'save';
             }
 
-            return response()->json(['status' => 'success', 'message' => $message]);
-
+            return response()->json(['status' => 'success', 'message' => $message, 'action' => $action]);
         } catch (\Exception $e) {
             // Tangani error database
             return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);

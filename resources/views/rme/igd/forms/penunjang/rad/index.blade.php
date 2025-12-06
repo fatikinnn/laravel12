@@ -54,8 +54,11 @@
                     <div class="col-md-4 text-center">
                         @if ($imagePath)
                             @php
-                                // Cek file di controller, di sini asumsikan bisa diakses
-                                $imageUrl = route('rme.igd.penunjang.rad.image', ['path' => $imagePath]);
+                                // Ganti path lokal dengan path network jika perlu
+                                $finalImagePath = str_ireplace('E:\\Fotorontgen\\', '\\\\192.168.30.6\\Fotorontgen\\', $imagePath);
+                                
+                                // Buat URL dengan path yang sudah disesuaikan
+                                $imageUrl = route('rme.igd.penunjang.rad.image', ['path' => $finalImagePath]);
                             @endphp
                             <strong>Gambar Radiologi</strong>
                             <a href="{{ $imageUrl }}" data-lightbox="radiologi-group-{{ $loop->iteration }}" data-title="Radiologi - {{ $result['Namapasien'] ?? '' }} - {{ $tanggalRD }}">

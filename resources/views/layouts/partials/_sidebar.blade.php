@@ -39,12 +39,69 @@
                 @endphp
 
                 @if(in_array(session('user.access'), $rmeAccessRoles))
-                    <li class="nav-item">
-                        <a href="{{ route('rme.igd.index') }}"
-                            class="nav-link {{ request()->routeIs('rme.igd.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-procedures"></i>
-                            <p>RME IGD</p>
+                    <li class="nav-item {{ request()->routeIs('rme.*') || request()->routeIs('visite-dokter.*') ? 'menu-open' : '' }}">
+                        <a href="#"
+                            class="nav-link {{ request()->routeIs('rme.*') || request()->routeIs('visite-dokter.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-file-medical"></i>
+                            <p>
+                                Rekam Medis (RME)
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
                         </a>
+
+                        <ul class="nav nav-treeview">
+
+                            {{-- RME IGD --}}
+                            <li class="nav-item">
+                                <a href="{{ route('rme.igd.index') }}"
+                                    class="nav-link {{ request()->routeIs('rme.igd.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-procedures"></i>
+                                    <p>RME IGD</p>
+                                </a>
+                            </li>
+
+                            {{-- Visite Dokter (Admin Only) --}}
+                            @if(in_array(session('user.access'), $rmeAccessRoles))
+                                <li class="nav-item">
+                                    <a href="{{ route('visite-dokter.index') }}"
+                                        class="nav-link {{ request()->routeIs('visite-dokter.*') ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-stethoscope"></i>
+                                        <p>Visite Dokter</p>
+                                    </a>
+                                </li>
+                            @endif
+
+                        </ul>
+                    </li>
+                @endif
+
+                @php
+                    // Daftar role yang bisa mengakses menu Monitoring
+                    $monitoringAccessRoles = ['DOKTER', 'DOKTER UMUM', 'PERAWAT', 'PELAYANAN', 'admin', 'BIDAN'];
+                @endphp
+
+                @if(in_array(session('user.access'), $monitoringAccessRoles))
+                    <li class="nav-item {{ request()->routeIs('monitoring.*') ? 'menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ request()->routeIs('monitoring.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <p>Monitoring <i class="right fas fa-angle-left"></i></p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('monitoring.lukareeda.index') }}" class="nav-link {{ request()->routeIs('monitoring.lukareeda.*') ? 'active' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Luka REEDA</p>
+                                </a>
+                            </li>
+                            {{-- Monitoring MCU (Admin Only) --}}
+                            @if(session('user.access') == 'admin')
+                                <li class="nav-item">
+                                    <a href="{{ route('monitoring.mcu.index') }}" class="nav-link {{ request()->routeIs('monitoring.mcu.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Monitoring MCU</p>
+                                    </a>
+                                </li>
+                            @endif
+                        </ul>
                     </li>
                 @endif
 

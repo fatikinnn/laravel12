@@ -281,9 +281,7 @@ $(document).ready(function() {
             }
 
             // Initial resize
-            setTimeout(() => {
-                resizeSignaturePads();
-            }, 100);
+            resizeSignaturePads();
         } catch (error) {
             console.error('Error initializing signature pads:', error);
         }
@@ -408,6 +406,15 @@ $(document).ready(function() {
         const url = $('#rm48a_detail_url').val();
         const noPendaftaran = $('#rm48a_nopendaftaran').val();
 
+        Swal.fire({
+            title: 'Memuat data...',
+            html: 'Mohon tunggu sejenak.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         $.get(url, { noPendaftaran: noPendaftaran, counter: counter })
             .done(function(response) {
                 if (response.status === 'success') {
@@ -431,6 +438,9 @@ $(document).ready(function() {
                     $('#rm48a_nama_saksi_1').val(data.NAMA_SAKSI_1 || userData.username);
                     $('#rm48a_yangmenyatakan').val(data.YANGMENYATAKAN || '');
 
+                    // Langsung muat TTD dari data base64 yang diterima
+                    loadSignaturesFromBase64(data);
+
                     // Update UI
                     $('#rm48a-form-title').text('Edit Data (No. ' + data.COUNTER + ')');
                     $('#btn-save-rm48a').html('<i class="fas fa-pencil-alt mr-1"></i> Update');
@@ -442,11 +452,6 @@ $(document).ready(function() {
                     // Tampilkan/hide form content berdasarkan status
                     toggleFormContent(data.PERSETUJUAN_TINDAKAN);
                     
-                    // Load signatures setelah form ditampilkan
-                    setTimeout(() => {
-                        loadSignaturesForEdit(noPendaftaran, counter);
-                    }, 500);
-
                     Swal.fire({ 
                         toast: true, 
                         position: 'top-end', 
@@ -461,6 +466,9 @@ $(document).ready(function() {
             })
             .fail(function() {
                 Swal.fire('Error', 'Gagal memuat detail data.', 'error');
+            })
+            .always(function() {
+                Swal.close(); // Selalu tutup loading dialog setelah selesai
             });
     }
 
@@ -476,46 +484,34 @@ $(document).ready(function() {
             }
             $('#rm48a-main-content').slideDown(400, () => {
                 // Resize signature pads setelah animasi selesai
-                setTimeout(() => {
-                    resizeSignaturePads();
-                }, 100);
+                resizeSignaturePads(); // Resize tetap di sini untuk memastikan canvas visible
             });
         } else {
             $('#rm48a-main-content').slideUp();
         }
     }
 
-    // Load signatures untuk edit
-    function loadSignaturesForEdit(noPendaftaran, counter) {
-        const imageUrlBase = $('#rm48a_image_url_base').val();
-        const timestamp = new Date().getTime();
+    // Fungsi baru untuk memuat TTD dari data base64
+    function loadSignaturesFromBase64(data) {
+        const loadPad = (padKey, base64Data) => {
+            if (signaturePads[padKey]) {
+                clearSignaturePad(padKey); // Bersihkan dulu
+                if (base64Data) {
+                    signaturePads[padKey].fromDataURL(base64Data, {
+                        ratio: 1,
+                        width: signaturePads[padKey].canvas.offsetWidth,
+                        height: signaturePads[padKey].canvas.offsetHeight
+                    }).then(() => {
+                        // Update hidden input jika diperlukan
+                        const resizedDataUrl = signaturePads[padKey].toDataURL('image/jpeg', 0.75);
+                        $(`#hidden${padKey}`).val(resizedDataUrl);
+                    }).catch(e => console.error(`Gagal memuat TTD untuk ${padKey}:`, e));
+                }
+            }
+        }
 
-        const loadSignature = (field, padKey) => {
-            if (!signaturePads[padKey]) return;
-            
-            const url = imageUrlBase.replace(':noPendaftaran', noPendaftaran)
-                                  .replace(':counter', counter)
-                                  .replace(':field', field) + `?v=${timestamp}`;
-
-            // Gunakan fromDataURL untuk memuat gambar langsung ke signature pad.
-            // Ini adalah cara yang lebih andal dan direkomendasikan.
-            signaturePads[padKey].fromDataURL(url, {
-                ratio: 1, // Sesuaikan jika perlu
-                width: signaturePads[padKey].canvas.offsetWidth,
-                height: signaturePads[padKey].canvas.offsetHeight
-            }).then(() => {
-                // Setelah berhasil dimuat, update hidden input dengan data URL yang sudah di-resize
-                // Ini penting jika pengguna hanya membuka dan menyimpan ulang tanpa menggambar ulang.
-                const resizedDataUrl = signaturePads[padKey].toDataURL('image/jpeg', 0.75);
-                $(`#hidden${padKey}`).val(resizedDataUrl);
-            }).catch(() => {
-                console.log(`Signature ${field} tidak ditemukan atau gagal dimuat dari URL:`, url);
-                clearSignaturePad(padKey);
-            });
-        };
-
-        loadSignature('SAKSI_1', 'Saksi1');
-        loadSignature('TTD_YANGMENYATAKAN', 'YangMenyatakan');
+        loadPad('Saksi1', data.SAKSI_1_BASE64);
+        loadPad('YangMenyatakan', data.TTD_YANGMENYATAKAN_BASE64);
     }
 
     // Event Listeners
@@ -541,7 +537,7 @@ $(document).ready(function() {
         }
     });
 
-    $(document).on('click', '.editable-row', function() {
+    $(document).off('click', '.editable-row').on('click', '.editable-row', function() {
         const counter = $(this).data('counter');
         loadDetailForEdit(counter);
         $('html, body').animate({ scrollTop: $('#rm48aForm').offset().top - 100 }, 500);
