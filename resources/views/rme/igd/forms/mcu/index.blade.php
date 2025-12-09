@@ -201,17 +201,39 @@
 
                     <div class="col-lg-6">
                         <div class="form-group">
+                            <label for="DIGUNAKAN">Digunakan Untuk</label>
+                            <input type="text" class="form-control" id="DIGUNAKAN" name="DIGUNAKAN" value="{{ $mcu->DIGUNAKAN ?? '' }}" placeholder="cth: Melamar Pekerjaan">
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="KEADAAN">Keadaan Umum</label>
+                            <input type="text" class="form-control" id="KEADAAN" name="KEADAAN" value="{{ $mcu->KEADAAN ?? '' }}" placeholder="cth: Baik, Cukup, Kurang">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12"><hr></div>
+
+                    <div class="col-lg-4">
+                        <div class="form-group">
                             <label for="KESIMPULAN">Kesimpulan</label>
                             <input type="text" class="form-control" id="KESIMPULAN" name="KESIMPULAN" value="{{ $mcu->KESIMPULAN ?? '' }}" placeholder="cth: Sehat, Sakit, dll">
                         </div>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
+                        <div class="form-group">
+                            <label for="NOSKD">No. SKD</label>
+                            {{-- NOSKD hanya bisa diedit jika belum tersimpan --}}
+                            <input type="text" class="form-control" id="NOSKD" name="NOSKD" value="{{ $mcu->NOSKD ?? '' }}" {{ isset($mcu->NOSKD) ? 'readonly' : '' }}>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
                         <div class="form-group">
                             <label for="DRPEMERIKSA">Dokter Pemeriksa</label>
                             <select class="form-control select2" id="DRPEMERIKSA" name="DRPEMERIKSA" style="width: 100%;">
                                 <option value="">-- Pilih Dokter --</option>
                                 @foreach($doctors as $doctor)
-                                    <option value="{{ $doctor->namapemeriksa }}" data-nopemeriksa="{{ $doctor->nopemeriksa }}" {{ isset($mcu) && $mcu->DRPEMERIKSA == $doctor->namapemeriksa ? 'selected' : '' }}>
+                                    <option value="{{ $doctor->namapemeriksa }}" data-nopemeriksa="{{ $doctor->nopemeriksa }}" {{ isset($mcu->DRPEMERIKSA) && $mcu->DRPEMERIKSA == $doctor->namapemeriksa ? 'selected' : '' }}>
                                         {{ $doctor->namapemeriksa }}
                                     </option>
                                 @endforeach

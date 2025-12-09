@@ -69,7 +69,8 @@ class Rm3aController extends Controller
             'COV_MAKS_SKOR', 'COV_JK_SKOR', 'COV_GEJA_SKOR', 'COV_RASIO_SKOR',
             'PACS2_SADAR', 'PACS3_RESPON', 'PACS4_RESPON', 'PACS1_MENINGGAL',
             'PACS1_TD_SIS', 'PACS1_TD_DIA', 'PACS1_NADI', 'PACS2_NAFAS', 'PACS2_TEMP', 'PACS3_SATURASI',
-            'PACS3_NYERI', 'PACS4_BB', 'PACS4_TB', 'BMI',
+            'PACS3_NYERI', 'PACS4_BB', 'PACS4_TB', 'BMI', 'KEPU_MERAH', 'KEPU_KUNING', 'KEPU_HIJAU',
+            'KEPU_HITAM',
             'WORT_SKOR0_SADAR', 'WORT_SKOR3_SELAIN', 'WORT_SKOR0_100', 'WORT_SKOR2_99', 'WORT_SKOR0_101',
             'WORT_SKOR1_102', 'WORT_SKOR0_19', 'WORT_SKOR1_20', 'WORT_SKOR2_22', 'WORT_SKOR0_35',
             'WORT_SKOR3_35', 'WORT_SKOR0_96', 'WORT_SKOR1_94', 'WORT_SKOR2_92', 'WORT_SKOR3_92',
@@ -107,6 +108,12 @@ class Rm3aController extends Controller
                 $data[$column] = '';
             }
         }
+
+        // Logika tambahan sesuai permintaan
+        $data['KEPU_MERAH'] = $request->has('WORT_SKOR0_TOT') ? 1 : 0;
+        $data['KEPU_KUNING'] = $request->has('WORT_SKOR1_TOT') ? 1 : 0;
+        $data['KEPU_HIJAU'] = $request->has('WORT_SKOR3_TOT') ? 1 : 0;
+        $data['KEPU_HITAM'] = $request->has('WORT_SKOR2_TOT') ? 1 : 0;
 
         // Penanganan nilai khusus
         $data['TGL_ENTRY'] = now();

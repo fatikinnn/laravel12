@@ -34,16 +34,30 @@ class Rm7Controller extends Controller
             ->orderBy('NAMAPEMERIKSA', 'asc')
             ->get(['NAMAPEMERIKSA']);
 
-        // Ambil data ruangan untuk dropdown
-        // Sesuai permintaan, query diubah untuk mendapatkan detail lebih lengkap
-        $ruangan = DB::connection('sqlsrv')
+        // Daftar ruangan khusus yang harus selalu muncul di dropdown tujuan
+        $specialUnitNames = ['BANGSAL IGD', 'RUANG VK', 'PONEK', 'IBS', 'Rawat Jalan'];
+
+        // Ambil SEMUA data ruangan untuk dropdown "Asal Pasien"
+        $ruanganAsalList = DB::connection('sqlsrv')
             ->table('KELASINAP as K')
             ->join('RUANGINAP as R', 'R.NoKelas', '=', 'K.NoKelas')
             ->where('R.AKTIFRUANG', 'Y')
             ->where('K.AKTIFKELAS', 1)
             ->select('K.NAMAKELAS', 'K.KODEKELAS', 'R.NORUANG', 'R.NAMARUANG')
             ->orderBy('K.NAMAKELAS')
-            ->orderBy('R.NAMARUANG')
+            ->orderBy('R.NAMARUANG');
+
+        // Buat query untuk dropdown "Pindah Ke"
+        // Ambil ruangan yang KOSONG (PAKAI != 'Y') ATAU termasuk ruangan khusus
+        $ruanganTujuanList = $ruanganAsalList->clone() // Clone query agar tidak perlu menulis ulang
+            ->where(function ($query) use ($specialUnitNames) {
+                $query->where('R.PAKAI', '!=', 'Y')
+                      ->orWhere(function ($subQuery) use ($specialUnitNames) {
+                          foreach ($specialUnitNames as $unit) {
+                              $subQuery->orWhere('R.NAMARUANG', 'like', '%' . $unit . '%');
+                          }
+                      });
+            })
             ->get();
 
         // Ambil ruangan tujuan otomatis dari booking terakhir di RANAP
@@ -63,7 +77,10 @@ class Rm7Controller extends Controller
             $ruangTujuanOtomatis = $ruangInfo ? trim($ruangInfo->NAMARUANG) : '';
         }
 
-        return view('rme.igd.forms.rm7.index', compact('noPendaftaran', 'norm', 'user', 'patientDetails', 'ruangan', 'dokterList', 'ruangTujuanOtomatis'));
+        // Ambil hasil query untuk ruangan asal setelah query tujuan selesai
+        $ruanganAsalList = $ruanganAsalList->get();
+
+        return view('rme.igd.forms.rm7.index', compact('noPendaftaran', 'norm', 'user', 'patientDetails', 'ruanganAsalList', 'ruanganTujuanList', 'dokterList', 'ruangTujuanOtomatis'));
     }
 
     /**
@@ -180,84 +197,70 @@ class Rm7Controller extends Controller
                         $data['TGLJAM_TERIMA'] = Carbon::now();
                     }
 
-                    // --- LOGIKA BARU: UPDATE STATUS BED SAAT PASIEN DITERIMA ---
-                    if ($isNewReceiver) {
-                        $ruanganAsal = trim($existing->ASAL_PASIEN_RUANGAN_TEXT);
-                        $ruanganTujuan = trim($request->input('PINDAH_KE_RUANG_TEXT'));
+                    // --- LOGIKA UPDATE RANAP (DIPERBAIKI SESUAI PERMINTAAN) ---
+                    $namaRuangAsal = trim($existing->ASAL_PASIEN_RUANGAN_TEXT);
+                    $namaRuangTujuan = trim($request->input('PINDAH_KE_RUANG_TEXT'));
 
-                        // 1. Kosongkan bed lama jika ruangan tersebut ada di tabel RUANGINAP.
-                        if ($ruanganAsal) {
-                            $ruangAsalExists = DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $ruanganAsal)->exists();
-                            if ($ruangAsalExists) {
-                                DB::connection('sqlsrv')->table('RUANGINAP')
-                                    ->where('NAMARUANG', $ruanganAsal)
-                                    ->update(['PAKAI' => 'N']);
-                            }
-                        }
+                    // Dapatkan informasi NoKelas dan NoRuang untuk kedua ruangan
+                    $ruangAsalInfo = DB::connection('sqlsrv')
+                        ->table('RUANGINAP as R')
+                        ->join('KELASINAP as K', 'R.NoKelas', '=', 'K.NoKelas')
+                        ->where('R.NAMARUANG', $namaRuangAsal)
+                        ->first(['R.NORUANG', 'K.KODEKELAS']);
 
-                        // 2. Isi bed baru jika ruangan tujuan ada di tabel RUANGINAP.
-                        if ($ruanganTujuan) {
-                            $ruangTujuanExists = DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $ruanganTujuan)->exists();
-                            if ($ruangTujuanExists) {
-                                DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $ruanganTujuan)->update(['PAKAI' => 'Y']);
-                            }
-                        }
-                    }
+                    $ruangTujuanInfo = DB::connection('sqlsrv')
+                        ->table('RUANGINAP as R')
+                        ->join('KELASINAP as K', 'R.NoKelas', '=', 'K.NoKelas')
+                        ->where('R.NAMARUANG', $namaRuangTujuan)
+                        ->first(['R.NORUANG', 'K.KODEKELAS']);
 
-                    // --- LOGIKA UPDATE RANAP (SESUAI NATIVE CODE) ---
-                    $namaRuangTujuan = $request->input('PINDAH_KE_RUANG_TEXT');
-                    if ($namaRuangTujuan) {
-                        $ruangTujuanInfo = DB::connection('sqlsrv')
-                            ->table('RUANGINAP as R')
-                            ->join('KELASINAP as K', 'R.NoKelas', '=', 'K.NoKelas')
-                            ->where('R.NAMARUANG', $namaRuangTujuan)
-                            ->first(['R.NORUANG', 'K.KODEKELAS']);
+                    // Pengecualian: Jika asal atau tujuan adalah unit khusus, jangan buat mutasi baru.
+                    // Logika diperbarui untuk menggunakan NORUANG spesifik untuk IGD/VK dan nama untuk unit lain.
+                    $specialNoruang = ['188', '313', '314', '315', '316', '317'];
+                    $specialUnitNames = ['PONEK', 'IBS', 'Rawat Jalan']; // Unit lain yang dicek berdasarkan nama
+                    $isSpecialTransfer = (isset($ruangAsalInfo->NORUANG) && in_array(trim($ruangAsalInfo->NORUANG), $specialNoruang)) ||
+                                         (isset($ruangTujuanInfo->NORUANG) && in_array(trim($ruangTujuanInfo->NORUANG), $specialNoruang)) ||
+                                         (str_replace($specialUnitNames, '', $namaRuangAsal) !== $namaRuangAsal) ||
+                                         (str_replace($specialUnitNames, '', $namaRuangTujuan) !== $namaRuangTujuan);
 
-                        if ($ruangTujuanInfo) {
-                            $newNobangsal = $ruangTujuanInfo->NORUANG;
-                            $newKodekelas = $ruangTujuanInfo->KODEKELAS;
+                    if ($ruangTujuanInfo) {
+                        $newNobangsal = $ruangTujuanInfo->NORUANG;
+                        $newKodekelas = $ruangTujuanInfo->KODEKELAS;
+                        $oldKodekelas = $ruangAsalInfo ? trim($ruangAsalInfo->KODEKELAS) : null;
 
-                            $ranapLama = DB::connection('sqlsrv')->table('RANAP')
-                                ->where('NOPENDAFTARAN', $noPendaftaran)
-                                ->orderBy('MUTASI', 'desc')
-                                ->first();
+                        $ranapLama = DB::connection('sqlsrv')
+                            ->table('RANAP')
+                            ->where('NOPENDAFTARAN', $noPendaftaran)
+                            ->orderBy('MUTASI', 'desc')
+                            ->first();
 
-                            if ($ranapLama) {
-                                $kelasLama = trim($ranapLama->KELAS);
-                                $mutasiLama = $ranapLama->MUTASI;
+                        if ($ranapLama) {
+                            $mutasiLama = $ranapLama->MUTASI;
 
-                                if ($kelasLama == $newKodekelas) {
-                                    // SKENARIO 1: KELAS SAMA, HANYA PINDAH RUANGAN
-                                    DB::connection('sqlsrv')->table('RANAP')
-                                        ->where('NOPENDAFTARAN', $noPendaftaran)
-                                        ->where('MUTASI', $mutasiLama)
-                                        ->update(['NOBANGSAL' => $newNobangsal]);
-                                } else {
-                                    // SKENARIO 2: KELAS BERBEDA, BUAT MUTASI BARU
-                                    $now = Carbon::now();
-
-                                    // a. Tutup mutasi lama
-                                    DB::connection('sqlsrv')->table('RANAP')
-                                        ->where('NOPENDAFTARAN', $noPendaftaran)
-                                        ->where('MUTASI', $mutasiLama)
-                                        ->update(['TANGGALKELUAR' => $now->format('Y-m-d'), 'JAMKELUAR' => $now, 'CEKOUT' => 'Y']);
-
-                                    // b. Insert mutasi baru
-                                    DB::connection('sqlsrv')->table('RANAP')->insert([
-                                        'NOPENDAFTARAN' => $noPendaftaran,
-                                        'TANGGALMASUK' => $now->format('Y-m-d'),
-                                        'JAMMASUK' => $now,
-                                        'MUTASI' => $mutasiLama + 1,
-                                        'CEKOUT' => 'N',
-                                        'NOBANGSAL' => $newNobangsal,
-                                        'KELAS' => $newKodekelas,
-                                        'NOPEMERIKSA' => $ranapLama->NOPEMERIKSA,
-                                        'NOSPRI' => $ranapLama->NOSPRI,
-                                        'KDTARIF' => $ranapLama->KDTARIF,
-                                        'NAMAUSER' => substr($user, 0, 25),
-                                        'KDJABATAN' => $ranapLama->KDJABATAN,
-                                    ]);
-                                }
+                            // Kondisi: Buat mutasi baru HANYA jika kelas berbeda DAN BUKAN transfer dari/ke unit khusus.
+                            if ($oldKodekelas != $newKodekelas && !$isSpecialTransfer) {
+                                // SKENARIO 1: KELAS BERBEDA & BUKAN IGD/VK -> BUAT MUTASI BARU
+                                $now = Carbon::now();
+                                // a. Tutup mutasi lama
+                                DB::connection('sqlsrv')->table('RANAP')
+                                    ->where('NOPENDAFTARAN', $noPendaftaran)
+                                    ->where('MUTASI', $mutasiLama)
+                                    ->update(['TANGGALKELUAR' => $now->format('Y-m-d'), 'JAMKELUAR' => $now, 'CEKOUT' => 'Y']);
+                                // b. Insert mutasi baru
+                                DB::connection('sqlsrv')->table('RANAP')->insert([
+                                    'NOPENDAFTARAN' => $noPendaftaran, 'TANGGALMASUK' => $now->format('Y-m-d'),
+                                    'JAMMASUK' => $now, 'MUTASI' => $mutasiLama + 1, 'CEKOUT' => 'N',
+                                    'NOBANGSAL' => $newNobangsal, 'KELAS' => $newKodekelas,
+                                    'NOPEMERIKSA' => $ranapLama->NOPEMERIKSA, 'NOSPRI' => $ranapLama->NOSPRI,
+                                    'KDTARIF' => $ranapLama->KDTARIF, 'NAMAUSER' => substr($user, 0, 25),
+                                    'KDJABATAN' => $ranapLama->KDJABATAN,
+                                ]);
+                            } else {
+                                // SKENARIO 2: KELAS SAMA atau transfer melibatkan unit khusus -> UPDATE BIASA
+                                DB::connection('sqlsrv')->table('RANAP')
+                                    ->where('NOPENDAFTARAN', $noPendaftaran)
+                                    ->where('MUTASI', $mutasiLama)
+                                    ->update(['NOBANGSAL' => $newNobangsal, 'KELAS' => $newKodekelas]);
                             }
                         }
                     }
@@ -297,6 +300,50 @@ class Rm7Controller extends Controller
                 $data['NOPENDAFTARAN'] = $noPendaftaran; // Tambahkan NOPENDAFTARAN ke data insert
 
                 DB::connection('sqlsrv')->table('rm7')->insert($data);
+            }
+
+            // --- LOGIKA BARU: UPDATE STATUS BED SEGERA ---
+            // Logika ini dijalankan saat CREATE baru atau saat UPDATE oleh pengirim.
+            // Tujuannya adalah untuk "memesan" bed tujuan secepat mungkin.
+            $isSenderAction = !$isUpdate || ($isUpdate && (trim($existing->PERAWAT_MENYERAHKAN) === $user));
+
+            if ($isSenderAction) {
+                $asalBaru = trim($request->input('ASAL_PASIEN_RUANGAN_TEXT'));
+                $tujuanBaru = trim($request->input('PINDAH_KE_RUANG_TEXT'));
+                $specialUnits = ['BANGSAL IGD', 'RUANG VK', 'Rawat Jalan', 'PONEK', 'IBS'];
+
+                // --- LOGIKA BARU (DISEMPURNAKAN): Penanganan jika ruangan asal atau tujuan diubah saat edit ---
+                if ($isUpdate) {
+                    $asalLama = trim($existing->ASAL_PASIEN_RUANGAN_TEXT);
+                    $tujuanLama = trim($existing->PINDAH_KE_RUANG_TEXT);
+
+                    // 1. Jika ruangan ASAL diubah, kembalikan status ruangan asal yang LAMA menjadi 'Y' (terpakai).
+                    if ($asalBaru !== $asalLama) {
+                        $isAsalLamaSpecial = str_replace($specialUnits, '', $asalLama) !== $asalLama;
+                        if (!empty($asalLama) && !$isAsalLamaSpecial) {
+                            DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $asalLama)->update(['PAKAI' => 'Y']);
+                        }
+                    }
+
+                    // 2. Jika ruangan TUJUAN diubah, kembalikan status ruangan tujuan yang LAMA menjadi 'N' (kosong).
+                    if ($tujuanBaru !== $tujuanLama) {
+                        $isTujuanLamaSpecial = str_replace($specialUnits, '', $tujuanLama) !== $tujuanLama;
+                        if (!empty($tujuanLama) && !$isTujuanLamaSpecial) {
+                            DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $tujuanLama)->update(['PAKAI' => 'N']);
+                        }
+                    }
+                }
+
+                // --- Update status untuk ruangan yang BARU ---
+                // 3. Kosongkan bed asal yang BARU (set ke 'N').
+                if (!empty($asalBaru) && (str_replace($specialUnits, '', $asalBaru) === $asalBaru)) {
+                    DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $asalBaru)->update(['PAKAI' => 'N']);
+                }
+
+                // 4. Tandai bed tujuan yang BARU sebagai terpakai (set ke 'Y').
+                if (!empty($tujuanBaru) && (str_replace($specialUnits, '', $tujuanBaru) === $tujuanBaru)) {
+                    DB::connection('sqlsrv')->table('RUANGINAP')->where('NAMARUANG', $tujuanBaru)->update(['PAKAI' => 'Y']);
+                }
             }
 
             // Proses Obat: Hapus yang lama, insert yang baru

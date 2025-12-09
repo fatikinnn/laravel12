@@ -33,7 +33,7 @@
                             <th class="text-left">Asal & Tujuan</th>
                             <th class="text-left d-none d-md-table-cell">Diserahkan Oleh</th>
                             <th class="text-left d-none d-md-table-cell">Diterima Oleh</th>
-                            <th class="text-center" style="width: 20%;">Aksi</th>
+                            <th class="text-center" style="width: 20%;">Status</th>
                         </tr>
                     </thead>
                     <tbody id="history-body-rm7">
@@ -70,7 +70,7 @@
                                     <option value="PONEK">PONEK</option>
                                     <option value="IBS">IBS</option>
                                     <option value="Rawat Jalan">Rawat Jalan</option>
-                                    @foreach ($ruangan as $ruang)
+                                    @foreach ($ruanganAsalList as $ruang)
                                         <option value="{{ trim($ruang->NAMARUANG) }}">{{ trim($ruang->NAMAKELAS) }} - {{ trim($ruang->NAMARUANG) }}</option>
                                     @endforeach
                                 </select>
@@ -83,7 +83,7 @@
                                     <option value="">-- Pilih Ruangan Tujuan --</option>
                                     <option value="IBS">IBS</option>
                                     <option value="Rawat Jalan">Rawat Jalan (Pulang)</option>
-                                    @foreach ($ruangan as $ruang)
+                                    @foreach ($ruanganTujuanList as $ruang)
                                         <option value="{{ trim($ruang->NAMARUANG) }}">{{ trim($ruang->NAMAKELAS) }} - {{ trim($ruang->NAMARUANG) }}</option>
                                     @endforeach
                                 </select>
@@ -215,7 +215,7 @@
                                     <th style="width: 15%;">Alasan Minum</th>
                                     <th style="width: 10%;">Lanjut Ranap?</th>
                                     <th style="width: 15%;">Telaah Obat</th>
-                                    <th style="width: 8%;">Aksi</th>
+                                    <th style="width: 8%;">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="body-obat-rumah-rm7"></tbody>
@@ -309,7 +309,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
                 <button type="button" class="btn btn-primary" id="btn-edit-from-modal-rm7" style="display: none;">
-                    <i class="fas fa-edit mr-1"></i> Edit Data Ini
+                    <i class="fas fa-edit mr-1"></i> Terima/Edit
                 </button>
             </div>
         </div>
@@ -515,7 +515,7 @@ $(document).ready(function() {
                     // Cek apakah user saat ini berhak menghapus
                     const canDelete = config.currentUser === perawatMenyerahkan || config.currentUser === perawatMenerima;
 
-                    const statusBadge = isPending ? '<span class="badge badge-warning">Menunggu</span>' : '<span class="badge badge-success">Selesai</span>';
+                    const statusBadge = isPending ? '<span class="badge badge-warning">Menunggu</span>' : '<span class="badge badge-success">Diterima</span>';
                     const tglEntry = item.TGLJAM_ENTRY ? moment(item.TGLJAM_ENTRY).format('DD/MM/YY HH:mm') : '-';
 
                     // Tombol hapus hanya akan dirender jika `canDelete` bernilai true

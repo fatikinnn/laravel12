@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
+// use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class Rm8aController extends Controller
@@ -106,14 +106,12 @@ class Rm8aController extends Controller
             'NAMA_PENERIMA_EDUKASI' => 'nullable|string',
             'TTD_PENERIMA' => 'nullable|string', // Base64 string
         ]);
-
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => 'Data tidak valid.', 'errors' => $validator->errors()], 422);
         }
 
         $noPendaftaran = $request->input('NOPENDAFTARAN');
         $counter = $request->input('COUNTER');
-        // Menggunakan session('user') agar konsisten dengan form lain
         $user = session('user');
         $username = $user['username'] ?? 'default_user';
         $now = Carbon::now();
@@ -125,21 +123,15 @@ class Rm8aController extends Controller
             'NAMA_PENERIMA_EDUKASI'
         ]);
 
-        // Selalu update user dan waktu entry
-        $data['USER_ENTRY'] = $username;
-        $data['TGLJAM_ENTRY'] = $now->format('Y-m-d H:i:s');
-        $data['NAMA_PEMBERI_EDUKASI'] = $username; // Nama pemberi edukasi diisi otomatis dari user login
-
         // 3. Handle TTD (Tanda Tangan)
         if ($request->has('TTD_PENERIMA') && !empty($request->input('TTD_PENERIMA'))) {
             $base64Image = $request->input('TTD_PENERIMA');
             if (strpos($base64Image, 'data:image') === 0) {
                 $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
-                // Simpan sebagai data biner mentah. Ini lebih efisien daripada hex string.
-                // Laravel akan menangani binding data biner ini dengan benar.
                 $data['TTD_PENERIMA'] = $imageData;
             }
         } else {
+            // If TTD is empty or not provided, set to null. This allows clearing the signature.
             $data['TTD_PENERIMA'] = null;
         }
 
@@ -152,11 +144,25 @@ class Rm8aController extends Controller
                                  ->max('COUNTER') + 1;
                 $data['COUNTER'] = $nextCounter;
                 $data['NOPENDAFTARAN'] = $noPendaftaran;
+                
+                // Set USER_ENTRY, TGLJAM_ENTRY, and NAMA_PEMBERI_EDUKASI only for new entries
+                $data['USER_ENTRY'] = $username;
+                $data['TGLJAM_ENTRY'] = $now->format('Y-m-d H:i:s');
+                $data['NAMA_PEMBERI_EDUKASI'] = $username;
+
                 DB::connection('sqlsrv')->table('RM8A')->insert($data);
                 $message = 'Data berhasil disimpan.';
             } else {
                 // Jika UPDATE, gunakan counter yang ada
-                DB::connection('sqlsrv')->table('RM8A')->where('NOPENDAFTARAN', $noPendaftaran)->where('COUNTER', $counter)->update($data);
+                // Perintah: "user entry/pemberi edukasi sebelumnya jangan di update"
+                // NAMA_PEMBERI_EDUKASI is a readonly field in the form, so its value from $request->only()
+                // will be the original one. We ensure it's not overwritten by the current user.
+                // USER_ENTRY and TGLJAM_ENTRY are entry-specific fields, so they are not updated here.
+                
+                DB::connection('sqlsrv')->table('RM8A')
+                    ->where('NOPENDAFTARAN', $noPendaftaran)
+                    ->where('COUNTER', $counter)
+                    ->update($data);
                 $message = 'Data berhasil diperbarui.';
             }
             return response()->json(['status' => 'success', 'message' => $message]);

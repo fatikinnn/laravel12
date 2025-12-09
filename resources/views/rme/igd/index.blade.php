@@ -6,6 +6,7 @@
     $isBidan = $access === 'BIDAN';
     $isPerawat = $access === 'PERAWAT';
     $isGizi = $access === 'GIZI';
+    $isMcu = $access === 'MCU';
     $isDokter = in_array($access, ['DOKTER UMUM', 'DOKTER']); // Assuming 'DOKTER' is for specialists
     $isPerawatBidan = in_array($access, ['PERAWAT', 'BIDAN']);
 @endphp
@@ -241,7 +242,7 @@
                                 @if ($isAdmin)
                                     <option value="psi" data-url="{{ route('rme.igd.form.psi.load') }}">PSI - Pneumonia Severity Index</option>
                                 @endif
-                                @if ($isAdmin || $isBidan)
+                                @if ($isAdmin || $isMcu)
                                     <option value="pkn" data-url="{{ route('rme.igd.form.pkn.load') }}" data-kelompok-usia="neonatus">PKN - Perawatan Kesehatan Neonatal</option>
                                 @endif
                                 <option value="mcu" data-url="{{ route('rme.igd.form.mcu.load') }}">MCU - Medical Check Up</option>

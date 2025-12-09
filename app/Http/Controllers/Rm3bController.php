@@ -177,14 +177,14 @@ class Rm3bController extends Controller
             $usiaPasien = $patientDetails['Usia'] ?? '';
             $jaminan = $patientDetails['Asuransi'] ?? '';
             $bb = $data['BB'] ?? '';
-            $riwayatPenyakitSekarang = $data['RIW_PENYAKIT'] ?? '';
+            $riwayatPenyakitSekarang = $data['keluhan_utama'] ?? '';
             $riwayatPenyakitDahulu = $request->has('RPD_ADA') ? ($data['RPD_ADA_KET'] ?? 'Ada') : '';
             $riwayatPenyakitKeluarga = $request->has('RPK_ADA') ? ($data['RPK_ADA_KET'] ?? 'Ada') : '';
             $riwayatAlergi = $request->has('RA_ADA') ? ($data['RA_ADA_KET'] ?? 'Ada') : '';
             $skalaNyeri = $request->has('NYERI_YA3B') ? ($data['NYERI_YA_KET'] ?? 'Ya') : '';
             $td = $data['TEDAR'] ? $data['TEDAR'] . ' mmHg' : '-';
             $nadi = $data['NADI'] ? $data['NADI'] . ' x/menit' : '-';
-            $suhu = $data['SUHU'] ? $data['SUHU'] . ' °C' : '-';
+            $suhu = $data['SUHU'] ? $data['SUHU'] . ' C' : '-';
             $spo2 = $data['SO2'] ? $data['SO2'] . ' %' : '-';
             $rr = $data['PERNAPASAN'] ? $data['PERNAPASAN'] . ' x/menit' : '-';
             $kepala = $data['KEPALA'] ?? '';
@@ -202,24 +202,25 @@ class Rm3bController extends Controller
             $diagUtama = $data['DIAGNOSIS_UTAMA'] ?: '-';
             $diagSekunder = implode(', ', array_filter([$data['DIAGNO_SEKUND_1'], $data['DIAGNO_SEKUND_2'], $data['DIAGNO_SEKUND_3'], $data['DIAGNO_SEKUND_4']]));
             $terapi = $data['TERAPI_SMNTR'] ?: '-';
+        
 
             $sessionUser = session('user');
             $namaPemeriksaLogin = $sessionUser['namapemeriksa'] ?? ''; // Ambil NAMAPEMERIKSA dari session
 
-            $waMessage = "*Assalamualaikum dokter,*\nMohon izin, saya {$namaPemeriksaLogin}, lapor pasien di IGD 🙏🏻\n\n";
-            $waMessage .= "*{$namaPasien} / {$usiaPasien} / {$jaminan} / BB: {$bb} Kg*\n\n";
-            $waMessage .= "*S/*\n" . ($riwayatPenyakitSekarang ?: '-') . "\n";
+            $waMessage = "Assalamualaikum dokter,\nMohon izin. Saya {$namaPemeriksaLogin}, lapor pasien di IGD 🙏🏻\n\n";
+            $waMessage .= "{$namaPasien} / {$usiaPasien} / {$jaminan} / BB: {$bb} Kg\n\n";
+            $waMessage .= "S/\n" . ($riwayatPenyakitSekarang ?: '-') . "\n";
             if ($riwayatPenyakitDahulu) $waMessage .= "Riw. Penyakit Dahulu: {$riwayatPenyakitDahulu}\n";
             if ($riwayatPenyakitKeluarga) $waMessage .= "Riw. Penyakit Keluarga: {$riwayatPenyakitKeluarga}\n";
             if ($riwayatAlergi) $waMessage .= "Riw. Alergi: {$riwayatAlergi}\n";
             if ($skalaNyeri) $waMessage .= "Skala Nyeri: {$skalaNyeri}\n";
-            $waMessage .= "\n*O/*\n";
+            $waMessage .= "\nO/\n";
             $waMessage .= "TD: {$td}\nN: {$nadi}\nS: {$suhu}\nSpO2: {$spo2}\nRR: {$rr}\n\n";
             $waMessage .= "Kepala: {$kepala}\nLeher: {$leher}\n";
-            $waMessage .= "*Thorax*\nJantung: {$jantung}\nParu: {$paru}\n";
+            $waMessage .= "Thorax\nJantung: {$jantung}\nParu: {$paru}\n";
             $waMessage .= "Abdomen: {$abdomen}\nAnogenital: {$anogenital}\nEkstremitas: {$ekstremitas}\n\n";
-            $waMessage .= "*A/*\n{$diagUtama}" . ($diagSekunder ? "\n{$diagSekunder}" : "") . "\n\n";
-            $waMessage .= "*P/*\n{$terapi}\n\n";
+            $waMessage .= "A/\n{$diagUtama}" . ($diagSekunder ? "\n{$diagSekunder}" : "") . "\n\n";
+            $waMessage .= "P/\n{$terapi}\n\n";
             $waMessage .= "Mohon tatalaksana pada pasien, terimakasih 🙏🏻";
 
             $waDoctors = [

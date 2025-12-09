@@ -82,6 +82,8 @@ class McuController extends Controller
         // Jika data MCU belum ada, set dokter pemeriksa dari user yang login
         if (!$mcu) {
             $mcu = new \stdClass(); // Buat objek kosong untuk konsistensi di view
+            $mcu->DRPEMERIKSA = null;
+            $mcu->NOPEMERIKSA = null;
             if (isset($user['namapemeriksa']) && !empty($user['namapemeriksa'])) {
                 $mcu->DRPEMERIKSA = $user['namapemeriksa'];
                 $mcu->NOPEMERIKSA = $user['nopemeriksa'] ?? '';
@@ -172,7 +174,7 @@ class McuController extends Controller
         // Kolom dari tabel MCU_NEW
         $columns = [
             'TD', 'NADI', 'SUHU', 'SP02', 'RR', 'TB', 'BB', 'IMT',
-            'KELUHAN', 'PENUNJANG', 'RENCANATERAPI', 'KESIMPULAN', 
+            'KELUHAN', 'PENUNJANG', 'RENCANATERAPI', 'KESIMPULAN', 'DIGUNAKAN', 'KEADAAN',
             'DRPEMERIKSA', 'NOPEMERIKSA'
         ];
         $data = [];
@@ -187,6 +189,39 @@ class McuController extends Controller
         // Set PEMERIKSAANFISIK secara manual
         $data['PEMERIKSAANFISIK'] = $pemeriksaanFisik;
         $data['DIAGNOSIS'] = $diagnosisString;
+
+        // Tambahkan NOSKD jika belum ada
+        $existingMcu = DB::connection('sqlsrv')->table('MCU_NEW')->where('NOPENDAFTARAN', $noPendaftaran)->first();
+        
+        // Kondisi diubah: Buat NOSKD jika data MCU belum ada, ATAU jika sudah ada tapi NOSKD-nya kosong.
+        // `empty()` akan mengecek null, string kosong (''), 0, dll.
+        if (!$existingMcu || empty($existingMcu->NOSKD)) {
+            $now = Carbon::now();
+            $year = $now->year;
+            $month = $now->month;
+
+            // Ambil nomor urut terakhir di bulan dan tahun berjalan
+            $maxNoskd = DB::connection('sqlsrv')->table('MCU_NEW')
+                ->whereYear('TGLJAM_ENTRY', $year)
+                ->whereMonth('TGLJAM_ENTRY', $month)
+                ->where('NOSKD', 'like', '%/MCU.MB/%')
+                ->max(DB::raw('CAST(SUBSTRING(NOSKD, 1, 4) AS INT)'));
+
+            $nextNumber = ($maxNoskd ?? 0) + 1;
+            $paddedNumber = str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            $romanMonths = [
+                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+            ];
+            $romanMonth = $romanMonths[$month];
+
+            $data['NOSKD'] = "{$paddedNumber}/MCU.MB/{$romanMonth}/{$year}";
+        } else {
+            // Jika NOSKD sudah ada, pastikan nilainya tidak terhapus saat update.
+            // Ambil dari request jika ada, atau dari data yang sudah ada di database.
+            $data['NOSKD'] = $request->input('NOSKD', $existingMcu->NOSKD);
+        }
 
         // Tambahkan data user dan timestamp
         $sessionUser = session('user');
