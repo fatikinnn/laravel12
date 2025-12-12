@@ -177,11 +177,19 @@ class Rm3bController extends Controller
             $usiaPasien = $patientDetails['Usia'] ?? '';
             $jaminan = $patientDetails['Asuransi'] ?? '';
             $bb = $data['BB'] ?? '';
-            $riwayatPenyakitSekarang = $data['keluhan_utama'] ?? '';
+            $riwayatPenyakitSekarang = $data['RIW_PENYAKIT'] ?? '';
             $riwayatPenyakitDahulu = $request->has('RPD_ADA') ? ($data['RPD_ADA_KET'] ?? 'Ada') : '';
             $riwayatPenyakitKeluarga = $request->has('RPK_ADA') ? ($data['RPK_ADA_KET'] ?? 'Ada') : '';
             $riwayatAlergi = $request->has('RA_ADA') ? ($data['RA_ADA_KET'] ?? 'Ada') : '';
             $skalaNyeri = $request->has('NYERI_YA3B') ? ($data['NYERI_YA_KET'] ?? 'Ya') : '';
+
+            $ku = $data['KESADARAN'] ?? '';
+
+            $gcsE = $data['GCS_E'] ?? '-';
+            $gcsV = $data['GCS_V'] ?? '-';
+            $gcsM = $data['GCS_M'] ?? '-';
+            $gcs = "E{$gcsE} V{$gcsV} M{$gcsM}";
+
             $td = $data['TEDAR'] ? $data['TEDAR'] . ' mmHg' : '-';
             $nadi = $data['NADI'] ? $data['NADI'] . ' x/menit' : '-';
             $suhu = $data['SUHU'] ? $data['SUHU'] . ' C' : '-';
@@ -215,6 +223,7 @@ class Rm3bController extends Controller
             if ($riwayatAlergi) $waMessage .= "Riw. Alergi: {$riwayatAlergi}\n";
             if ($skalaNyeri) $waMessage .= "Skala Nyeri: {$skalaNyeri}\n";
             $waMessage .= "\nO/\n";
+            $waMessage .= "KU: {$ku}\nGCS: {$gcs}\n";
             $waMessage .= "TD: {$td}\nN: {$nadi}\nS: {$suhu}\nSpO2: {$spo2}\nRR: {$rr}\n\n";
             $waMessage .= "Kepala: {$kepala}\nLeher: {$leher}\n";
             $waMessage .= "Thorax\nJantung: {$jantung}\nParu: {$paru}\n";
@@ -252,7 +261,8 @@ class Rm3bController extends Controller
                 ['name' => 'dr. KHANSA AINUN NABILA', 'phone' => '6285848622888'],
                 ['name' => 'dr. FALAH', 'phone' => '6282250816673'],
                 ['name' => 'dr. Ermando Satria Utomo', 'phone' => '628562899921'],
-                ['name' => 'dr. ANJAR PUSPITANINGRUM', 'phone' => '6281902160660'],
+                ['name' => 'dr. ANJAR PUSPITANINGRUM', 'phone' => '62819021D60660'],
+                ['name' => 'dr. RINALDY AGUNG KURNIA', 'phone' => '6285777258238'],
                 ['name' => 'dr. Finandi Mulya Pratama', 'phone' => '6281229980949'],
             ];
 

@@ -35,7 +35,7 @@
 
                 @php
                     // Daftar role yang bisa mengakses menu RME
-                    $rmeAccessRoles = ['DOKTER', 'DOKTER UMUM', 'PERAWAT', 'PELAYANAN', 'admin', 'BIDAN', 'MCU'];
+                    $rmeAccessRoles = ['DOKTER', 'DOKTER UMUM', 'PERAWAT', 'PELAYANAN', 'admin', 'BIDAN', 'MCU', 'GIZI'];
                 @endphp
 
                 @if(in_array(session('user.access'), $rmeAccessRoles))

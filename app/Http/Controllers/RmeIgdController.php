@@ -20,7 +20,7 @@ class RmeIgdController extends Controller
         $userAccess = session('user.access');
 
         // Daftar role yang diizinkan mengakses halaman ini
-        $allowedAccess = ['DOKTER', 'DOKTER UMUM', 'PERAWAT', 'PELAYANAN', 'admin', 'BIDAN', 'MCU'];
+        $allowedAccess = ['DOKTER', 'DOKTER UMUM', 'PERAWAT', 'PELAYANAN', 'admin', 'BIDAN', 'MCU', 'GIZI'];
 
         // Periksa apakah role pengguna ada dalam daftar yang diizinkan
         if (!in_array($userAccess, $allowedAccess)) {

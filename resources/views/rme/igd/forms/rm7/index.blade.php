@@ -9,6 +9,7 @@
     <input type="hidden" id="rm7-ruang-tujuan-otomatis" value="{{ $ruangTujuanOtomatis ?? '' }}">
     <input type="hidden" id="rm7-url-detail" value="{{ route('rme.igd.form.rm7.detail') }}">
     <input type="hidden" id="rm7-url-store" value="{{ route('rme.igd.form.rm7.store') }}">
+    <input type="hidden" id="rm7-url-check-room" value="{{ route('rme.igd.form.rm7.checkRoomOccupancy') }}">
     <input type="hidden" id="rm7-url-destroy" value="{{ route('rme.igd.form.rm7.destroy') }}">
 
     {{-- Riwayat Transfer --}}
@@ -65,28 +66,27 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="asal-ruangan-rm7">Asal Pasien</label>
-                                <select class="form-control" id="asal-ruangan-rm7" name="ASAL_PASIEN_RUANGAN_TEXT" required>
-                                    <option value="">-- Pilih Ruangan Asal --</option>
-                                    <option value="PONEK">PONEK</option>
-                                    <option value="IBS">IBS</option>
-                                    <option value="Rawat Jalan">Rawat Jalan</option>
+                                <select class="form-control" id="asal-ruangan-rm7" name="ASAL_PASIEN_ID" required>
+                                    <option value="" data-namaruang="">-- Pilih Ruangan Asal --</option>
+                                    <option value="Rawat Jalan" data-namaruang="Rawat Jalan">Rawat Jalan</option>
                                     @foreach ($ruanganAsalList as $ruang)
-                                        <option value="{{ trim($ruang->NAMARUANG) }}">{{ trim($ruang->NAMAKELAS) }} - {{ trim($ruang->NAMARUANG) }}</option>
+                                        <option value="{{ trim($ruang->NORUANG) }}" data-namaruang="{{ trim($ruang->NAMARUANG) }}">{{ trim($ruang->NAMAKELAS) }} - {{ trim($ruang->NAMARUANG) }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="ASAL_PASIEN_RUANGAN_TEXT" id="asal-ruangan-text-rm7">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="pindah-ruangan-rm7">Pindah Ke</label>
-                                <select class="form-control" id="pindah-ruangan-rm7" name="PINDAH_KE_RUANG_TEXT">
-                                    <option value="">-- Pilih Ruangan Tujuan --</option>
-                                    <option value="IBS">IBS</option>
-                                    <option value="Rawat Jalan">Rawat Jalan (Pulang)</option>
+                                <select class="form-control" id="pindah-ruangan-rm7" name="PINDAH_KE_ID" required>
+                                    <option value="" data-namaruang="">-- Pilih Ruangan Tujuan --</option>
+                                    <option value="Rawat Jalan" data-namaruang="Rawat Jalan">Rawat Jalan (Pulang)</option>
                                     @foreach ($ruanganTujuanList as $ruang)
-                                        <option value="{{ trim($ruang->NAMARUANG) }}">{{ trim($ruang->NAMAKELAS) }} - {{ trim($ruang->NAMARUANG) }}</option>
+                                        <option value="{{ trim($ruang->NORUANG) }}" data-namaruang="{{ trim($ruang->NAMARUANG) }}">{{ trim($ruang->NAMAKELAS) }} - {{ trim($ruang->NAMARUANG) }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="PINDAH_KE_RUANG_TEXT" id="pindah-ruangan-text-rm7">
                             </div>
                         </div>
                     </div>
@@ -392,6 +392,14 @@ $(document).ready(function() {
         theme: 'bootstrap4'
     });
 
+    // Sync hidden text inputs based on selection
+    $('#asal-ruangan-rm7, #pindah-ruangan-rm7').on('change', function() {
+        const selected = $(this).find(':selected');
+        const name = selected.data('namaruang') || $(this).val();
+        const targetId = $(this).attr('id') === 'asal-ruangan-rm7' ? '#asal-ruangan-text-rm7' : '#pindah-ruangan-text-rm7';
+        $(targetId).val(name);
+    });
+
         $('#pindah-ruangan-rm7').on('change', function() {
             const selectedText = $(this).find('option:selected').text().toUpperCase();
             const icuContainer = $('#indikasi-masuk-icu-container-rm7');
@@ -419,6 +427,7 @@ $(document).ready(function() {
             detail: $('#rm7-url-detail').val(),
             store: $('#rm7-url-store').val(),
             destroy: $('#rm7-url-destroy').val(),
+            checkRoom: $('#rm7-url-check-room').val(),
         }
     };
 
@@ -488,8 +497,20 @@ $(document).ready(function() {
         $('#asal-ruangan-rm7').val(null).trigger('change');
         // Atur ruangan tujuan otomatis jika ada
         const ruangTujuanOtomatis = $('#rm7-ruang-tujuan-otomatis').val();
-        $('#pindah-ruangan-rm7').val(ruangTujuanOtomatis).trigger('change');
-
+        if (ruangTujuanOtomatis) {
+            // Cari option yang memiliki data-namaruang sesuai
+            let found = false;
+            $('#pindah-ruangan-rm7 option').each(function() {
+                if ($(this).data('namaruang') === ruangTujuanOtomatis) {
+                    $('#pindah-ruangan-rm7').val($(this).val()).trigger('change');
+                    found = true;
+                    return false;
+                }
+            });
+            if (!found) $('#pindah-ruangan-rm7').val(null).trigger('change');
+        } else {
+            $('#pindah-ruangan-rm7').val(null).trigger('change');
+        }
 
 
         $('#perawat-menyerahkan-rm7, #perawat-menerima-rm7').prop('readonly', true);
@@ -595,7 +616,20 @@ $(document).ready(function() {
                     } else if (input.is('input[type="time"]')) {
                         input.val(value ? String(value).substring(0, 5) : '');
                     } else if (input.is('select')) {
-                        input.val(String(value).trim()).trigger('change');
+                        // Handle select ruangan yang value-nya ID tapi data dari DB adalah Nama
+                        if (input.attr('id') === 'asal-ruangan-rm7' || input.attr('id') === 'pindah-ruangan-rm7') {
+                            let found = false;
+                            input.find('option').each(function() {
+                                if ($(this).data('namaruang') === String(value).trim()) {
+                                    input.val($(this).val()).trigger('change');
+                                    found = true;
+                                    return false;
+                                }
+                            });
+                            if (!found && String(value).trim() === 'Rawat Jalan') input.val('Rawat Jalan').trigger('change');
+                        } else {
+                            input.val(String(value).trim()).trigger('change');
+                        }
                     } else {
                         input.val(String(value).trim());
                     }
@@ -847,15 +881,11 @@ $(document).ready(function() {
         else $('#lainnya-text-container-rm7').slideUp();
     });
 
-    $('#form-rm7').on('submit', function(e) {
-        e.preventDefault();
-
-        const submitButton = $('#btn-submit-rm7');
-        const originalButtonHtml = submitButton.html();
-        const form = $(this);
+    function proceedWithSave(originalButtonHtml) {
+        const form = $('#form-rm7');
         let formData = form.serializeArray();
+        const submitButton = $('#btn-submit-rm7');
 
-        // *** FIX: Convert empty string values from selects to null
         formData.forEach(function(field) {
             if (form.find(`[name="${field.name}"]`).is('select') && field.value === '') {
                 field.value = null;
@@ -870,17 +900,71 @@ $(document).ready(function() {
                 submitButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
             },
             success: function(response) {
-            Swal.fire('Berhasil!', response.message, 'success').then(() => {
-                resetForm();
-                loadHistory();
-            });
+                Swal.fire('Berhasil!', response.message, 'success').then(() => {
+                    resetForm();
+                    loadHistory();
+                });
             },
             error: function(xhr) {
                 const errorMsg = xhr.responseJSON?.message || 'Terjadi kesalahan pada server. Silakan coba lagi.';
                 Swal.fire('Gagal!', errorMsg, 'error');
             },
             complete: function() {
-                submitButton.prop('disabled', false).html(originalButtonHtml);
+                // Restore button only on error, as success will trigger resetForm()
+                if (Swal.isVisible() && Swal.getIcon() === 'error') {
+                    submitButton.prop('disabled', false).html(originalButtonHtml);
+                }
+            }
+        });
+    }
+
+    $('#form-rm7').on('submit', function(e) {
+        e.preventDefault();
+
+        const submitButton = $('#btn-submit-rm7');
+        const originalButtonHtml = submitButton.html();
+        const idRuangTujuan = $('#pindah-ruangan-rm7').val(); // Ini sekarang ID (NORUANG)
+
+        if (!idRuangTujuan) {
+            proceedWithSave(originalButtonHtml); // Let backend validation handle empty room
+            return;
+        }
+
+        submitButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memeriksa Ruangan...');
+
+        $.ajax({
+            url: config.urls.checkRoom,
+            type: 'GET',
+            data: { noRuang: idRuangTujuan, noPendaftaran: config.noPendaftaran },
+            success: function(response) {
+                if (response.occupied) {
+                    Swal.fire({
+                        title: 'RUANGAN SUDAH TERISI!',
+                        html: response.message,
+                        icon: 'warning',
+                        confirmButtonText: 'Batal'
+                    }).then(() => {
+                        submitButton.prop('disabled', false).html(originalButtonHtml);
+                    });
+                } else {
+                    proceedWithSave(originalButtonHtml);
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    title: 'Peringatan',
+                    text: 'Gagal memeriksa status ruangan tujuan. Tetap lanjutkan penyimpanan?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        proceedWithSave(originalButtonHtml);
+                    } else {
+                        submitButton.prop('disabled', false).html(originalButtonHtml);
+                    }
+                });
             }
         });
     });

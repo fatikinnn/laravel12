@@ -238,4 +238,102 @@ class CpptController extends Controller
 
         return "{$hour}:{$minute}:{$second}";
     }
+
+    /**
+     * Mengambil data Resume Medis Ranap untuk sidebar CPPT.
+     */
+    public function getResumeMedis(Request $request)
+    {
+        $validator = Validator::make($request->all(), ['noPendaftaran' => 'required|string']);
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'message' => 'No Pendaftaran diperlukan.'], 400);
+        }
+
+        try {
+            // 1. Cari NoRM dari NoPendaftaran saat ini
+            $currentPasien = DB::connection('sqlsrv')->table('DIP')
+                ->select('NORM')
+                ->where('NOPENDAFTARAN', $request->noPendaftaran)
+                ->first();
+
+            if (!$currentPasien) {
+                return response()->json(['status' => 'error', 'message' => 'Data pendaftaran tidak ditemukan.'], 404);
+            }
+
+            // 2. Ambil semua NoPendaftaran Rawat Inap (KDDAFTAR = 2) dan Rawat Jalan (KDDAFTAR = 1)
+            $listPendaftaran = DB::connection('sqlsrv')->table('DIP')
+                ->select('NOPENDAFTARAN', 'KDDAFTAR')
+                ->where('NORM', $currentPasien->NORM)
+                ->whereIn('KDDAFTAR', [1, 2])
+                ->orderBy('TANGGALDAFTAR', 'desc')
+                ->get();
+
+            $results = [];
+            foreach ($listPendaftaran as $pendaftaran) {
+                $nopen = trim($pendaftaran->NOPENDAFTARAN);
+                $kdDaftar = $pendaftaran->KDDAFTAR;
+                $toUtf8 = fn($str) => mb_convert_encoding($str ?? '', 'UTF-8', 'ISO-8859-1');
+
+                if ($kdDaftar == 2) {
+                    // --- RAWAT INAP (Existing Logic) ---
+                    $data = DB::connection('sqlsrv')->select('exec ResumedisinapSP ?', [$nopen]);
+
+                    if (!empty($data)) {
+                        $item = $data[0];
+                        $results[] = [
+                            'KATEGORI' => 'RANAP',
+                            'NOPENDAFTARAN' => $nopen,
+                            'TGLMASUK' => $item->TGLMASUK,
+                            'TGLKELUAR' => $item->TGLKELUAR ?? null,
+                            'BANGSAL' => $toUtf8($item->BANGSAL),
+                            'KELUHANUTAMA' => $toUtf8($item->KELUHANUTAMA),
+                            'DPJP' => $toUtf8($item->DPJP),
+                            'DIAGNOSAUTAMA' => $toUtf8($item->DIAGNOSAUTAMA),
+                            'TINDAKAN_PROC' => $toUtf8($item->TINDAKAN_PROC),
+                            'OBATPULANG' => $toUtf8($item->OBATPULANG),
+                            'CK_LAB' => $item->CK_LAB,
+                            'CK_EKG' => $item->CK_EKG,
+                            'CK_RONTG' => $item->CK_RONTG,
+                            'CK_CTSCAN' => $item->CK_CTSCAN,
+                            'CK_ECHO' => $item->CK_ECHO,
+                            'CK_LAIN_PEM' => $item->CK_LAIN_PEM,
+                            'PEM_PENUNJANG_TEXT' => null,
+                            'PEMERIKSAAN_FISIK' => null,
+                        ];
+                    }
+                } elseif ($kdDaftar == 1) {
+                    // --- RAWAT JALAN (New Logic) ---
+                    $data = DB::connection('sqlsrv')->select('exec ResumeMedis ?', [$nopen]);
+
+                    if (!empty($data)) {
+                        $item = $data[0];
+                        $results[] = [
+                            'KATEGORI' => 'RAJAL',
+                            'NOPENDAFTARAN' => $nopen,
+                            'TGLMASUK' => $item->TglMasuk,
+                            'TGLKELUAR' => $item->TglKeluar,
+                            'BANGSAL' => 'Rawat Jalan',
+                            'KELUHANUTAMA' => $toUtf8($item->Anamnesa),
+                            'DPJP' => $toUtf8($item->NamaPemeriksa),
+                            'DIAGNOSAUTAMA' => $toUtf8($item->Diagnosa),
+                            'TINDAKAN_PROC' => $toUtf8($item->Tindakan),
+                            'PEMERIKSAAN_FISIK' => $toUtf8($item->Pemeriksaan),
+                            'OBATPULANG' => $toUtf8($item->Terapi),
+                            'PEM_PENUNJANG_TEXT' => $toUtf8($item->PemPenunjang),
+                            'CK_LAB' => 0, 'CK_EKG' => 0, 'CK_RONTG' => 0,
+                            'CK_CTSCAN' => 0, 'CK_ECHO' => 0, 'CK_LAIN_PEM' => 0,
+                        ];
+                    }
+                }
+            }
+
+            if (!empty($results)) {
+                return response()->json(['status' => 'success', 'data' => $results]);
+            }
+
+            return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Gagal mengambil resume medis: ' . $e->getMessage()], 500);
+        }
+    }
 }

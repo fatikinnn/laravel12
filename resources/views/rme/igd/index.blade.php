@@ -173,7 +173,7 @@
                             {{-- SKRINING GIZI --}}
                             @if ($isAdmin || $isDokterUmum || $isGizi || $isBidan)
                                 <optgroup label="Skrining Gizi">
-                                    <option value="rm6a_dewasa" data-url="{{ route('rme.igd.form.rm6a_dewasa.load') }}" data-kelompok-usia="dewasa">Skrining Gizi Dewasa</option>
+                                    <option value="rm6a_dewasa" data-url="{{ route('rme.igd.form.rm6a_dewasa.load') }}">Skrining Gizi Dewasa</option>
                                     <option value="rm6a" data-url="{{ route('rme.igd.form.rm6a.load') }}" data-kelompok-usia="geriatri">Skrining Gizi Geriatri</option>
                                     <option value="rm26" data-url="{{ route('rme.igd.form.rm26.load') }}" data-kelompok-usia="anak">Skrining Gizi Anak</option>
                                     <option value="skrininggiziibuhamil" data-url="{{ route('rme.igd.form.skrininggiziibuhamil.load') }}" data-gender="P">Skrining Gizi Ibu Hamil</option>

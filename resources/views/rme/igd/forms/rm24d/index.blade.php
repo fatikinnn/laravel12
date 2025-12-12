@@ -12,8 +12,8 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="monitoringTableRm24d" style="min-width: 2000px;">
+            <div class="table-responsive w-100">
+                <table class="table table-bordered table-hover" id="monitoringTableRm24d">
                     <thead class="thead-light text-center align-middle">
                         <tr>
                             <th style="width: 200px;">Tgl. Shift</th>
@@ -24,8 +24,8 @@
                             <th style="width: 240px;">Tindakan</th>
                             <th style="width: 120px;">Jam</th>
                             <th style="width: 250px;">Evaluasi (SOAP)</th>
-                            <th style="width: 200px;">Nama yang Menyerahkan</th>
-                            <th style="width: 280px;">Nama & TTD yang Menerima</th>
+                            <th style="width: 250px;">Nama yang Menyerahkan</th>
+                            <th style="width: 250px;">Nama yang Menerima</th>
                             <th style="width: 80px;">Aksi</th>
                         </tr>
                     </thead>
@@ -47,51 +47,7 @@
 $(document).ready(function() {
     const noPendaftaran = "{{ $noPendaftaran }}";
     const currentUser = "{{ htmlspecialchars($user['username'] ?? '', ENT_QUOTES, 'UTF-8') }}";
-    let signaturePads = {};
-
-    function initSignature(canvasId, inputId, existingSignature) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        const hiddenInput = document.getElementById(inputId);
-        
-        const signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
-        signaturePads[canvasId] = signaturePad;
-
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-            signaturePad.clear();
-            if (signaturePad.fromDataURL && existingSignature) {
-                signaturePad.fromDataURL(existingSignature);
-            }
-        }
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
-
-        signaturePad.addEventListener("endStroke", () => {
-            if (!signaturePad.isEmpty()) {
-                hiddenInput.value = signaturePad.toDataURL('image/jpeg', 0.75);
-            }
-        });
-    }
-
-    window.clearSignatureRm24d = function(index) {
-        const canvasId = 'canvasTTDRm24d' + index;
-        if (signaturePads[canvasId]) {
-            signaturePads[canvasId].clear();
-            $('#hiddenTTDRm24d' + index).val('');
-        }
-        const preview = $(`#canvasTTDRm24d${index}`).closest('.signature-container').find('.signature-preview');
-        if (preview.length) {
-            preview.hide();
-            $(`#${canvasId}`).show();
-        }
-    }
+    const perawatBidanList = @json($perawatBidan);
 
     function parseFlexibleDateTime(dateTimeString) {
         if (!dateTimeString || typeof dateTimeString !== 'string') return '';
@@ -117,25 +73,19 @@ $(document).ready(function() {
                 <td><textarea class="form-control form-control-sm EVALUASI" rows="3"></textarea></td>
                 <td><input type="text" class="form-control form-control-sm NM_SERAH" value="${currentUser}" readonly></td>
                 <td>
-                    <input type="text" class="form-control form-control-sm NM_TERIMA mb-2" placeholder="Nama Penerima...">
-                    <div class="signature-container position-relative">
-                        <img src="" class="border signature-preview" style="width: 250px; height: 100px; display: none;">
-                        <canvas id="canvasTTDRm24d${index}" class="border" width="250" height="100" style="display: block;"></canvas>
-                        <div class="mt-1">
-                            <button type="button" class="btn btn-sm btn-outline-primary btn-ubah-ttd" style="display: none;"><i class="fas fa-pencil-alt"></i> Ubah</button>
-                            <button type="button" class="btn btn-sm btn-outline-warning btn-clear-ttd" onclick="clearSignatureRm24d(${index})">
-                                <i class="fas fa-eraser"></i> Hapus
-                            </button>
-                        </div>
-                        <input type="hidden" class="TTD_TERIMA" id="hiddenTTDRm24d${index}">
-                    </div>
+                    <select class="form-control form-control-sm NM_TERIMA select2-penerima">
+                        <option value="" selected>Pilih Nama...</option>
+                        ${perawatBidanList.map(p => `<option value="${p.Username}">${p.Username}</option>`).join('')}
+                    </select>
                 </td>
                 <td class="text-center align-middle">
                     <button class="btn btn-sm btn-outline-danger btnRemoveRowRm24d"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>`;
         $('#monitoringBodyRm24d').append(newRow);
-        initSignature(`canvasTTDRm24d${index}`, `hiddenTTDRm24d${index}`);
+        $('#monitoringBodyRm24d').find('.select2-penerima').last().select2({
+            theme: 'bootstrap4'
+        });
     }
 
     function loadMonitoringData() {
@@ -145,14 +95,6 @@ $(document).ready(function() {
                 response.data.forEach(function(item, index) {
                     const tglShiftInput = item.TGLSHIT ? moment(item.TGLSHIT).format('YYYY-MM-DDTHH:mm') : '';
                     const jamInput = item.JAM ? moment(item.JAM, 'HH:mm:ss').format('HH:mm') : '';
-                    
-                    // Logika yang lebih andal: asumsikan TTD ada jika COUNTER ada dan bukan 0.
-                    // Controller akan menangani jika TTD-nya memang kosong (null).
-                    const hasSignature = item.COUNTER && item.COUNTER != '0';
-
-                    const ttdUrl = hasSignature 
-                        ? `{{ route('rme.igd.rm24d.showSignature', [':noPendaftaran', ':counter']) }}`.replace(':noPendaftaran', encodeURIComponent(noPendaftaran)).replace(':counter', item.COUNTER) + `?_=${new Date().getTime()}` // Use different param to avoid confusion
-                        : '';
 
                     const rowHTML = `
                         <tr data-counter="${item.COUNTER}" data-index="${index}">
@@ -167,48 +109,20 @@ $(document).ready(function() {
                             <td><textarea class="form-control form-control-sm EVALUASI" rows="3">${item.EVALUASI || ''}</textarea></td>
                             <td><input type="text" class="form-control form-control-sm NM_SERAH" value="${item.NM_SERAH || currentUser}" readonly></td>
                             <td>
-                                <input type="text" class="form-control form-control-sm NM_TERIMA mb-2" placeholder="Nama Penerima..." value="${item.NM_TERIMA || ''}">
-                                <div class="signature-container position-relative">
-                                    <img src="${ttdUrl}" class="border signature-preview" style="width: 250px; height: 100px; display: none;">
-                                    <canvas id="canvasTTDRm24d${index}" class="border" width="250" height="100" style="display: block;"></canvas>
-                                    <div class="mt-1">
-                                        <button type="button" class="btn btn-sm btn-outline-primary btn-ubah-ttd" style="display: none;" title="Ubah Tanda Tangan">
-                                            <i class="fas fa-pencil-alt"></i> Ubah
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-warning btn-clear-ttd" onclick="clearSignatureRm24d(${index})" title="Hapus Tanda Tangan">
-                                            <i class="fas fa-eraser"></i> Hapus
-                                        </button>
-                                    </div>
-                                    <input type="hidden" class="TTD_TERIMA" id="hiddenTTDRm24d${index}">
-                                </div>
+                                <select class="form-control form-control-sm NM_TERIMA select2-penerima">
+                                    <option value="">Pilih Nama...</option>
+                                    ${perawatBidanList.map(p => `<option value="${p.Username}" ${item.NM_TERIMA === p.Username ? 'selected' : ''}>${p.Username}</option>`).join('')}
+                                </select>
                             </td>
                             <td class="text-center align-middle">
                                 <button class="btn btn-sm btn-outline-danger btnRemoveRowRm24d"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>`;
                     $('#monitoringBodyRm24d').append(rowHTML);
-                    initSignature(`canvasTTDRm24d${index}`, `hiddenTTDRm24d${index}`);
-                    
-                    // Logika untuk menampilkan TTD yang sudah ada
-                    if (hasSignature && ttdUrl) {
-                        const container = $(`#canvasTTDRm24d${index}`).closest('.signature-container');
-                        const previewImg = container.find('.signature-preview');
-                        const canvas = container.find('canvas');
-                        const btnUbah = container.find('.btn-ubah-ttd');
-                        const btnClear = container.find('.btn-clear-ttd');
-
-                        // Cek apakah gambar bisa dimuat
-                        previewImg.on('load', function() {
-                            $(this).show(); // Tampilkan gambar
-                            canvas.hide();   // Sembunyikan canvas
-                            btnUbah.show();  // Tampilkan tombol ubah
-                            btnClear.hide(); // Sembunyikan tombol hapus
-                        }).on('error', function(e) {
-                            // Jika gambar gagal dimuat, pastikan canvas terlihat
-                            console.error("Gagal memuat gambar tanda tangan dari URL:", ttdUrl);
-                            canvas.show();
-                        });
-                    }
+                });
+                // Inisialisasi semua select2 setelah loop selesai
+                $('.select2-penerima').select2({
+                    theme: 'bootstrap4'
                 });
             } else {
                 addNewRow();
@@ -235,7 +149,7 @@ $(document).ready(function() {
                 EVALUASI: row.find('.EVALUASI').val(),
                 NM_SERAH: row.find('.NM_SERAH').val(),
                 NM_TERIMA: row.find('.NM_TERIMA').val(),
-                TTD_TERIMA: row.find('.TTD_TERIMA').val()
+                TTD_TERIMA: null // TTD tidak digunakan lagi
             });
         });
 
@@ -312,15 +226,6 @@ $(document).ready(function() {
                 }
             }
         });
-    });
-
-    // Handler untuk tombol "Ubah TTD"
-    $(document).on('click', '.btn-ubah-ttd', function() {
-        const container = $(this).closest('.signature-container');
-        container.find('.signature-preview').hide();
-        container.find('canvas').show(); // Tampilkan canvas untuk menggambar ulang
-        container.find('.btn-clear-ttd').show(); // Tampilkan tombol clear
-        $(this).hide();
     });
 
 

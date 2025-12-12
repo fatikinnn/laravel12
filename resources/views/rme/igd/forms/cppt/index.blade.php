@@ -7,71 +7,80 @@
     <input type="hidden" id="cppt_history_action" value="{{ route('rme.igd.form.cppt.history') }}">
     <input type="hidden" id="cppt_detail_action" value="{{ route('rme.igd.form.cppt.detail') }}">
     <input type="hidden" id="cppt_check_action" value="{{ route('rme.igd.form.cppt.check') }}">
+    <input type="hidden" id="cppt_resume_medis_action" value="{{ route('rme.igd.form.cppt.resume_medis') }}">
 
     {{-- Riwayat Pemeriksaan --}}
-    <div class="mb-4">
-        <h6 class="font-weight-bold mb-3"><i class="fas fa-history mr-2"></i>Riwayat Pemeriksaan</h6>
-        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-            <table class="table table-sm table-bordered table-hover" id="cpptHistoryTable">
-                <thead class="thead-light sticky-top" style="top: -1px;">
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>PPA</th>
-                        <th>Pemeriksaan (SOAP)</th>
-                        <th>Instruksi (Plan)</th>
-                        <th>User</th>
-                    </tr>
-                </thead>
-                <tbody id="cpptHistoryBody">
-                    <tr>
-                        <td colspan="5" class="text-center">
-                            <i class="fas fa-spinner fa-spin mr-2"></i>Memuat riwayat...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="card card-outline card-primary mb-3">
+        <div class="card-header py-2">
+            <h3 class="card-title font-weight-bold" style="font-size: 1rem;">
+                <i class="fas fa-history mr-2"></i>Riwayat Pemeriksaan
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-sm table-bordered table-hover mb-0" id="cpptHistoryTable">
+                    <thead class="thead-light sticky-top" style="top: -1px;">
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>PPA</th>
+                            <th>Pemeriksaan (SOAP)</th>
+                            <th>Instruksi (Plan)</th>
+                            <th>User</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cpptHistoryBody">
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>Memuat riwayat...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    {{-- Form Input CPPT --}}
-    <form id="cpptForm">
-        @csrf
-        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-        {{-- Hidden inputs for other fields from native code --}}
-        <input type="hidden" id="cppt_kesadaran" name="KESADARAN">
-        <input type="hidden" id="cppt_skor" name="SKOR">
-        <input type="hidden" id="cppt_bb" name="BB">
-        <input type="hidden" id="cppt_tb" name="TB">
-        <input type="hidden" id="cppt_peroral" name="PERORAL">
-        <input type="hidden" id="cppt_parenteral" name="PARENTERAL">
-        <input type="hidden" id="cppt_mlain" name="MLAIN">
-        <input type="hidden" id="cppt_urin" name="URIN">
-        <input type="hidden" id="cppt_muntah" name="MUNTAH">
-        <input type="hidden" id="cppt_klain" name="KLAIN">
-        {{-- Flag untuk menandai update --}}
-        <input type="hidden" id="is_update_flag" name="is_update" value="false">
+    <div class="row">
+        {{-- Left Column: Form Input --}}
+        <div class="col-lg-7">
+            <form id="cpptForm">
+                @csrf
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                {{-- Hidden inputs for other fields from native code --}}
+                <input type="hidden" id="cppt_kesadaran" name="KESADARAN">
+                <input type="hidden" id="cppt_skor" name="SKOR">
+                <input type="hidden" id="cppt_bb" name="BB">
+                <input type="hidden" id="cppt_tb" name="TB">
+                <input type="hidden" id="cppt_peroral" name="PERORAL">
+                <input type="hidden" id="cppt_parenteral" name="PARENTERAL">
+                <input type="hidden" id="cppt_mlain" name="MLAIN">
+                <input type="hidden" id="cppt_urin" name="URIN">
+                <input type="hidden" id="cppt_muntah" name="MUNTAH">
+                <input type="hidden" id="cppt_klain" name="KLAIN">
+                {{-- Flag untuk menandai update --}}
+                <input type="hidden" id="is_update_flag" name="is_update" value="false">
 
-        {{-- Tanggal dan Jam --}}
-        <div class="row mb-3">
-            <div class="col-lg-4 col-md-6 mb-2">
-                <label for="cppt_tanggal" class="form-label">Tanggal</label>
-                <input type="date" id="cppt_tanggal" name="TANGGAL" class="form-control" value="{{ date('Y-m-d') }}">
-            </div>
-            <div class="col-lg-4 col-md-6 mb-2">
-                <label for="cppt_jam" class="form-label">Jam</label>
-                <input type="time" id="cppt_jam" name="JAM" class="form-control" value="{{ date('H:i:s') }}" step="1">
-            </div>
-            <div class="col-lg-4 col-md-12">
-                <label for="cppt_catatan" class="form-label">Catatan</label>
-                <input type="text" class="form-control" id="cppt_catatan" name="CATATAN">
-            </div>
-        </div>
+                {{-- Tanggal dan Jam --}}
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-2">
+                        <label for="cppt_tanggal" class="form-label">Tanggal</label>
+                        <input type="date" id="cppt_tanggal" name="TANGGAL" class="form-control" value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label for="cppt_jam" class="form-label">Jam</label>
+                        <input type="time" id="cppt_jam" name="JAM" class="form-control" value="{{ date('H:i:s') }}" step="1">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="cppt_catatan" class="form-label">Catatan</label>
+                    <input type="text" class="form-control" id="cppt_catatan" name="CATATAN">
+                </div>
 
-        {{-- Pemeriksaan & Instruksi --}}
-        <div class="row mb-3">
-            <div class="col-12">
-                <label for="cppt_pemeriksaan" class="form-label">Pemeriksaan (SOAP)</label>
-                <textarea class="form-control" id="cppt_pemeriksaan" name="PEMERIKSAAN" rows="8">S :
+                {{-- Pemeriksaan & Instruksi --}}
+                <div class="mb-3">
+                    <label for="cppt_pemeriksaan" class="form-label">Pemeriksaan (SOAP)</label>
+                    <textarea class="form-control" id="cppt_pemeriksaan" name="PEMERIKSAAN" rows="8">S :
 O :
     TD :
     N :
@@ -82,25 +91,43 @@ O :
     BB :
     TB :
 A :</textarea>
-            </div>
-            <div class="col-12 mt-3">
-                <label for="cppt_instruksi" class="form-label">Instruksi (Plan)</label>
-                <textarea class="form-control" id="cppt_instruksi" name="INSTRUKSI" rows="5">P :</textarea>
-            </div>
+                </div>
+                <div class="mb-3">
+                    <label for="cppt_instruksi" class="form-label">Instruksi (Plan)</label>
+                    <textarea class="form-control" id="cppt_instruksi" name="INSTRUKSI" rows="5">P :</textarea>
+                </div>
+
+                {{-- Tombol Aksi --}}
+                <div class="mt-4">
+                    <div class="">
+                        <button type="submit" class="btn btn-primary" id="btn-save-cppt" style="width: 100%; max-width: 180px;">
+                            <i class="fas fa-save mr-2"></i> Simpan
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btn-reset-cppt" style="width: 100%; max-width: 180px;">
+                            <i class="fas fa-sync-alt mr-2"></i> Batal / Baru
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
 
-        {{-- Tombol Aksi --}}
-        <div class="col-12 mt-4">
-            <div class="">
-                <button type="submit" class="btn btn-primary" id="btn-save-cppt" style="width: 100%; max-width: 180px;">
-                    <i class="fas fa-save mr-2"></i> Simpan
-                </button>
-                <button type="button" class="btn btn-outline-secondary" id="btn-reset-cppt" style="width: 100%; max-width: 180px;">
-                    <i class="fas fa-sync-alt mr-2"></i> Batal / Baru
-                </button>
+        {{-- Right Column: History & Resume --}}
+        <div class="col-lg-5">
+            {{-- Resume Medis --}}
+            <div class="card card-outline card-info h-100">
+                <div class="card-header py-2">
+                    <h3 class="card-title font-weight-bold" style="font-size: 1rem;">
+                        <i class="fas fa-file-medical-alt mr-1"></i> Resume Medis
+                    </h3>
+                </div>
+                <div class="card-body p-2" id="resume-medis-container" style="overflow-y: auto; font-size: 0.85rem; max-height: 650px; min-height: 300px;">
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-spinner fa-spin mr-1"></i> Memuat data...
+                    </div>
+                </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
 
 {{-- Modal untuk Detail --}}
@@ -238,6 +265,105 @@ $(document).ready(function() {
         }).fail(function(xhr) {
             console.error('Gagal memuat riwayat:', xhr);
             $('#cpptHistoryBody').html('<tr><td colspan="5" class="text-center text-danger">Gagal memuat riwayat.</td></tr>');
+        });
+    }
+
+    // Fungsi memuat Resume Medis Ranap
+    function loadResumeMedis() {
+        const url = $('#cppt_resume_medis_action').val();
+        const noPendaftaran = $('#cppt_nopendaftaran').val();
+        
+        $('#resume-medis-container').html('<div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin fa-2x mb-2"></i><br>Sedang memuat data resume...</div>');
+
+        $.get(url, { noPendaftaran: noPendaftaran }, function(response) {
+            if (response.status === 'success' && response.data.length > 0) {
+                let html = '';
+                
+                response.data.forEach((d, index) => {
+                    let penunjangHtml = '-';
+                    
+                    if (d.PEM_PENUNJANG_TEXT && d.PEM_PENUNJANG_TEXT.trim() !== '') {
+                        penunjangHtml = d.PEM_PENUNJANG_TEXT;
+                    } else {
+                        let penunjang = [];
+                        if (d.CK_LAB == 1) penunjang.push('Laboratorium');
+                        if (d.CK_EKG == 1) penunjang.push('EKG');
+                        if (d.CK_RONTG == 1) penunjang.push('Radiologi');
+                        if (d.CK_CTSCAN == 1) penunjang.push('CT Scan');
+                        if (d.CK_ECHO == 1) penunjang.push('Echocardiography');
+                        if (d.CK_LAIN_PEM == 1) penunjang.push('Lainnya');
+                        
+                        if (penunjang.length) {
+                            penunjangHtml = `<ul class="pl-3 mb-0"><li>${penunjang.join('</li><li>')}</li></ul>`;
+                        }
+                    }
+
+                    const tglMasuk = d.TGLMASUK ? (typeof moment !== 'undefined' ? moment(d.TGLMASUK).format('DD/MM/YYYY') : d.TGLMASUK) : '-';
+                    
+                    let kategoriBadge = '';
+                    if (d.KATEGORI === 'RAJAL') {
+                        kategoriBadge = '<span class="badge badge-info ml-2">Rawat Jalan</span>';
+                    } else if (d.KATEGORI === 'RANAP') {
+                        kategoriBadge = '<span class="badge badge-warning ml-2">Rawat Inap</span>';
+                    }
+                    
+                    html += `
+                        <div class="card mb-2 border shadow-sm">
+                            <div class="card-header p-2 bg-light font-weight-bold text-dark" style="font-size: 0.9rem;">
+                                ${tglMasuk} - ${d.BANGSAL || ''} ${kategoriBadge}
+                            </div>
+                            <div>
+                                <div class="card-body p-2 bg-light">
+                                    <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+                                        <tr><td class="font-weight-bold" style="width: 35%;">DPJP</td><td>: ${d.DPJP || '-'}</td></tr>
+                                        <tr><td colspan="2"><hr class="my-1"></td></tr>
+                                        <tr><td colspan="2" class="font-weight-bold">Keluhan Utama:</td></tr>
+                                        <tr><td colspan="2" class="pl-2 text-muted">${d.KELUHANUTAMA || '-'}</td></tr>
+                                        ${d.PEMERIKSAAN_FISIK ? `<tr><td colspan="2" class="font-weight-bold mt-2">Pemeriksaan Fisik:</td></tr>
+                                        <tr><td colspan="2" class="pl-2 text-muted">${d.PEMERIKSAAN_FISIK}</td></tr>` : ''}
+                                        <tr><td colspan="2" class="font-weight-bold mt-2">Diagnosa Utama:</td></tr>
+                                        <tr><td colspan="2" class="pl-2 text-muted">${d.DIAGNOSAUTAMA || '-'}</td></tr>
+                                        <tr><td colspan="2" class="font-weight-bold mt-2">Penunjang:</td></tr>
+                                        <tr><td colspan="2" class="pl-2 text-muted">${penunjangHtml}</td></tr>
+                                        <tr><td colspan="2" class="font-weight-bold mt-2">Tindakan/Prosedur:</td></tr>
+                                        <tr><td colspan="2" class="pl-2 text-muted">${d.TINDAKAN_PROC || '-'}</td></tr>
+                                        <tr><td colspan="2" class="font-weight-bold mt-2">Obat Pulang:</td></tr>
+                                        <tr><td colspan="2" class="pl-2 text-muted">${d.OBATPULANG || '-'}</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                $('#resume-medis-container').html(html);
+            } else {
+                $('#resume-medis-container').html(`
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                        <p class="mb-0 font-weight-bold">Tidak Ada Data Resume Medis</p>
+                        <small>Pasien belum memiliki riwayat resume medis rawat inap sebelumnya.</small>
+                    </div>
+                `);
+            }
+        }).fail(function(xhr) {
+            if (xhr.status === 404) {
+                $('#resume-medis-container').html(`
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                        <p class="mb-0 font-weight-bold">Tidak Ada Data Resume Medis</p>
+                        <small>Pasien belum memiliki riwayat resume medis rawat inap sebelumnya.</small>
+                    </div>
+                `);
+            } else {
+                $('#resume-medis-container').html(`
+                    <div class="text-center text-danger py-5">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p class="mb-0">Gagal memuat data.</p>
+                        <button class="btn btn-sm btn-outline-danger mt-2 btn-retry-resume">Coba Lagi</button>
+                    </div>
+                `);
+            }
         });
     }
 
@@ -495,7 +621,13 @@ $(document).ready(function() {
         resetCpptForm();
     });
 
+    // Tombol Retry Resume (Delegated)
+    $('#resume-medis-container').on('click', '.btn-retry-resume', function() {
+        loadResumeMedis();
+    });
+
     // Panggil fungsi load riwayat saat form pertama kali dimuat
     loadCpptHistory();
+    loadResumeMedis();
 });
 </script>

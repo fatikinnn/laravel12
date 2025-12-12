@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'RME - RSUI Mutiara Bunda')</title>
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
@@ -36,9 +36,6 @@
         }
         .btn-primary, .bg-primary {
             background-color: var(--rs-primary) !important;
-        }
-        body {
-            overflow-x: hidden;
         }
 
         /* --- Transisi Animasi Halus --- */

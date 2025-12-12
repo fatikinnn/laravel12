@@ -16,7 +16,15 @@ class Rm24dController extends Controller
         $norm = $request->input('NoRM');
         $user = session('user');
 
-        return view('rme.igd.forms.rm24d.index', compact('noPendaftaran', 'norm', 'user'));
+        $perawatBidan = DB::connection('sqlsrv')
+            ->table('satusehatlogin')
+            ->select('Username')
+            ->where('isactive', 1)
+            ->whereIn('access', ['perawat', 'bidan'])
+            ->orderBy('Username', 'asc')
+            ->get();
+
+        return view('rme.igd.forms.rm24d.index', compact('noPendaftaran', 'norm', 'user', 'perawatBidan'));
     }
 
     public function history(Request $request)

@@ -162,6 +162,7 @@ Route::middleware(['auth.custom'])->group(function () {
             Route::get('/cppt/history', [CpptController::class, 'getHistory'])->name('cppt.history');
             Route::get('/cppt/detail', [CpptController::class, 'getDetail'])->name('cppt.detail');
             Route::get('/cppt/check', [CpptController::class, 'checkData'])->name('cppt.check');
+            Route::get('/cppt/resume-medis', [CpptController::class, 'getResumeMedis'])->name('cppt.resume_medis');
 
             // Routes untuk Form RM60
             Route::prefix('rm60')->name('rm60.')->group(function () {
@@ -176,6 +177,7 @@ Route::middleware(['auth.custom'])->group(function () {
                 Route::get('/load', [App\Http\Controllers\Rm7Controller::class, 'load'])->name('load');
                 Route::get('/history', [App\Http\Controllers\Rm7Controller::class, 'history'])->name('history');
                 Route::get('/detail', [App\Http\Controllers\Rm7Controller::class, 'detail'])->name('detail');
+                Route::get('/check-room-occupancy', [App\Http\Controllers\Rm7Controller::class, 'checkRoomOccupancy'])->name('checkRoomOccupancy');
                 Route::post('/store', [App\Http\Controllers\Rm7Controller::class, 'store'])->name('store');
                 Route::post('/destroy', [App\Http\Controllers\Rm7Controller::class, 'destroy'])->name('destroy');
             });
